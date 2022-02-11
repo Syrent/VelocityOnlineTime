@@ -1,0 +1,8 @@
+name: SayanPlayTime
+version: "2.0.0"
+main: ir.sayandevelopment.sayanplaytime.Spigot.SpigotMain
+api-version: 1.13
+prefix: SayanPlayTime
+authors: [ Syrent ]
+description: SayanPlayTime plugin
+website: syrent.ir
