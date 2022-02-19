@@ -44,7 +44,7 @@ public class SayanPlayTime {
         this.logger = logger;
 
         try {
-            JDA = JDABuilder.createDefault("ODU1NTk2OTYzNDk5MDgxNzI5.YM0yxA.k01a2PBR68T5v5BZ68LY52aO3R8").build();
+            JDA = JDABuilder.createDefault("ODQ2MDM4NDQwNTIwMDU2OTAy.YKpssg.T4S1xJxc1lGERaZEXTQUxhR8Fcg").build();
         } catch (LoginException e) {
             e.printStackTrace();
         }
@@ -80,7 +80,7 @@ public class SayanPlayTime {
                     getLogger().info("Discord event listener successfully registered.");
                     checkTime();
                 })
-                .delay(3L, TimeUnit.SECONDS)
+                .delay(10L, TimeUnit.SECONDS)
                 .schedule();
 
         server.getAllServers().forEach(registeredServer -> {
@@ -104,12 +104,13 @@ public class SayanPlayTime {
         AtomicBoolean done = new AtomicBoolean(false);
         AtomicBoolean staffDone = new AtomicBoolean(false);
         LuckPerms api = LuckPermsProvider.get();
+        MiniMessage formatter = MiniMessage.get();
 
         getServer().getScheduler().buildTask(this, () -> {
             int day = Calendar.getInstance().get(Calendar.DAY_OF_WEEK);
             int hours = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-            if (!staffDone.get()) {
-                if (hours == 11) {
+            if (hours == 0) {
+                if (!staffDone.get()) {
                     try {
                         DiscordManager.getInstance().sendDailyMessage();
                         try {
@@ -124,7 +125,7 @@ public class SayanPlayTime {
                     }
                 }
 
-                /*if (!done.get()) {
+                if (!done.get()) {
                     if (day == 7) {
                         try {
                             String username = SQL.getWeeklyTops(1).get(0).getUserName();
@@ -135,7 +136,6 @@ public class SayanPlayTime {
                             }
                             getLogger().info(String.format("%s won weekly rank!", username));
                             getServer().getAllPlayers().forEach(player -> {
-                                MiniMessage formatter = MiniMessage.get();
                                 player.sendMessage(formatter.deserialize("<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
                                         " <gradient:#F2E205:#F2A30F>PlayTime</gradient> " +
                                         "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"));
@@ -155,11 +155,9 @@ public class SayanPlayTime {
                             }
 
                             done.set(true);
-
-                        } catch (Exception ignored) {
-                        }
+                        } catch (Exception ignored) {}
                     }
-                }*/
+                }
             }
         }).repeat(1, TimeUnit.SECONDS).schedule();
     }
