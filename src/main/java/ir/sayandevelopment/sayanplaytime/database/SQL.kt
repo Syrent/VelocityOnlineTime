@@ -1,285 +1,226 @@
-package ir.sayandevelopment.sayanplaytime.database;
+package ir.sayandevelopment.sayanplaytime.database
 
-import com.velocitypowered.api.proxy.server.RegisteredServer;
-import ir.sayandevelopment.sayanplaytime.PPlayer;
-import ir.sayandevelopment.sayanplaytime.SayanPlayTime;
+import ir.sayandevelopment.sayanplaytime.SayanPlayTime
+import ir.sayandevelopment.sayanplaytime.OnlinePlayer
+import java.lang.Exception
+import java.sql.Connection
+import java.util.*
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.*;
+abstract class SQL(
+    private val plugin: SayanPlayTime
+) {
 
-public abstract class SQL {
+    var connection: Connection? = null
 
-    private Connection connection;
+    abstract fun openConnection()
 
-    public abstract void openConnection() throws Exception;
+    private val isClosed = connection == null || connection!!.isClosed || !(connection!!.isValid(0))
 
-    public void setConnection(Connection connection) {
-        this.connection = connection;
+    fun createTable() {
+        execute("CREATE TABLE IF NOT EXISTS sayanplaytime_playtime (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), total_time BIGINT);")
+        execute("CREATE TABLE IF NOT EXISTS sayanplaytime_weekly (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT);")
+        execute("CREATE TABLE IF NOT EXISTS sayanplaytime_daily (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), total_time BIGINT);")
+        createServerColumns()
     }
 
-    public Connection getConnection() {
-        return connection;
+    private fun createServerColumns() {
+        plugin.server.allServers.forEach { registeredServer ->
+            val serverName = registeredServer.serverInfo.name
+            
+            try {
+                plugin.logger.info("Creating $serverName in the playtime database...")
+                execute("ALTER TABLE sayanplaytime_playtime ADD COLUMN IF NOT EXISTS $serverName BIGINT;")
+                execute("ALTER TABLE sayanplaytime_daily ADD COLUMN IF NOT EXISTS $serverName BIGINT;")
+            } catch (e: Exception) {
+                plugin.logger.error("Could not create server column in database. Server: $serverName")
+                plugin.logger.error("Error message: ${e.message}")
+                e.printStackTrace()
+            }
+        }
     }
 
-    public boolean isClosed() throws SQLException {
-        return connection == null || connection.isClosed() || !connection.isValid(0);
+    fun updateServerPlaytime(uuid: UUID, name: String, time: Float, server: String) {
+        execute("INSERT INTO sayanplaytime_playtime (uuid, name, ${server}) VALUES ('$uuid','$name','$time') ON DUPLICATE KEY UPDATE name = '$name', $server = $time;")
     }
 
-    public void createTable() throws Exception {
-        String sql;
-        sql = "CREATE TABLE IF NOT EXISTS sayanplaytime_playtime (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), total_time BIGINT);";
-        execute(sql);
-        sql = "CREATE TABLE IF NOT EXISTS sayanplaytime_weekly (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT);";
-        execute(sql);
-        sql = "CREATE TABLE IF NOT EXISTS sayanplaytime_daily (uuid VARCHAR(64) UNIQUE, name VARCHAR(16), total_time BIGINT);";
-        execute(sql);
+    fun updateDailyServerPlaytime(uuid: UUID, name: String, time: Float, server: String) {
+        execute("INSERT INTO sayanplaytime_daily (uuid, name, ${server}) VALUES ('$uuid','$name','$time') ON DUPLICATE KEY UPDATE name = '$name', $server = $time;")
     }
 
-    public void createColumn(String gameMode) throws Exception {
-        SayanPlayTime.INSTANCE.getLogger().info("Creating " + gameMode.toLowerCase() + " in the playtime database...");
-        String sql = String.format(
-                "ALTER TABLE sayanplaytime_playtime ADD COLUMN IF NOT EXISTS %s BIGINT;", gameMode.toLowerCase()
-        );
-        execute(sql);
-        sql = String.format(
-                "ALTER TABLE sayanplaytime_daily ADD COLUMN IF NOT EXISTS %s BIGINT;", gameMode.toLowerCase()
-        );
-        execute(sql);
+    fun updateWeeklyPlayTime(uuid: UUID, name: String, time: Float) {
+        execute("INSERT INTO sayanplaytime_weekly (uuid, name, time) VALUES ('$uuid','$name','$time') ON DUPLICATE KEY UPDATE name = '$name', time = $time;")
     }
 
-    public void updateGameModePlayTime(UUID uuid, String name, float time, String gameMode) throws Exception {
-        String sql = String.format("INSERT INTO sayanplaytime_playtime (uuid, name, %s) VALUES ('%s','%s','%s') ON DUPLICATE KEY UPDATE name = '%s', %s = %s;", gameMode.toLowerCase(), uuid, name, time, name, gameMode.toLowerCase(), time);
-        execute(sql);
+    fun updateDailyPlayTime(uuid: UUID, name: String, time: Float) {
+        execute("INSERT INTO sayanplaytime_daily (uuid, name, total_time) VALUES ('$uuid','$name','$time') ON DUPLICATE KEY UPDATE name = '$name', total_time = $time;")
     }
 
-    public void updateDailyGameModePlayTime(UUID uuid, String name, float time, String gameMode) throws Exception {
-        String sql = String.format("INSERT INTO sayanplaytime_daily (uuid, name, %s) VALUES ('%s','%s','%s') ON DUPLICATE KEY UPDATE name = '%s', %s = %s;", gameMode.toLowerCase(), uuid, name, time, name, gameMode.toLowerCase(), time);
-        execute(sql);
-    }
+    fun updateTotalPlayTime(uuid: UUID) {
+        var totalTime: Long = 0
 
-    public void updateWeeklyPlayTime(UUID uuid, String name, float time) throws Exception {
-        String sql = String.format("INSERT INTO sayanplaytime_weekly (uuid, name, time) VALUES ('%s','%s','%s') ON DUPLICATE KEY UPDATE name = '%s', time = %s;", uuid, name, time, name, time);
-        execute(sql);
-    }
-
-
-    public void updateDailyPlayTime(UUID uuid, String name, float time) throws Exception {
-        String sql = String.format("INSERT INTO sayanplaytime_daily (uuid, name, total_time) VALUES ('%s','%s','%s') ON DUPLICATE KEY UPDATE name = '%s', total_time = %s;", uuid, name, time, name, time);
-        execute(sql);
-    }
-
-    public void updateTotalPlayTime(UUID uuid) throws Exception {
-        float total_time = 0;
-        String sql;
-
-        for (RegisteredServer server : SayanPlayTime.INSTANCE.getServer().getAllServers()) {
-            String gameMode = server.getServerInfo().getName().toLowerCase();
-            sql = String.format("SELECT * FROM sayanplaytime_playtime WHERE uuid='%s'", uuid.toString());
-            float result = resultExecute(sql, gameMode);
-            total_time = total_time + result;
+        for (server in plugin.server.allServers.map { it.serverInfo.name }) {
+            val result = resultExecute("SELECT * FROM sayanplaytime_playtime WHERE uuid='$uuid'", server)
+            totalTime += result
         }
 
-        sql = String.format("INSERT INTO sayanplaytime_playtime (uuid) VALUES ('%s') ON DUPLICATE KEY UPDATE total_time = %s;", uuid.toString(), total_time);
-        execute(sql);
+        execute("INSERT INTO sayanplaytime_playtime (uuid) VALUES ('$uuid') ON DUPLICATE KEY UPDATE total_time = $totalTime;")
     }
 
-    public void updateDailyTotalPlayTime(UUID uuid) throws Exception {
-        float total_time = 0;
-        String sql;
+    fun updateDailyTotalPlayTime(uuid: UUID) {
+        var totalTime: Long = 0
 
-        for (RegisteredServer server : SayanPlayTime.INSTANCE.getServer().getAllServers()) {
-            String gameMode = server.getServerInfo().getName().toLowerCase();
-            sql = String.format("SELECT * FROM sayanplaytime_daily WHERE uuid='%s'", uuid.toString());
-            float result = resultExecute(sql, gameMode);
-            total_time = total_time + result;
+        for (serverName in plugin.server.allServers.map { it.serverInfo.name }) {
+            val result = resultExecute("SELECT * FROM sayanplaytime_daily WHERE uuid='$uuid'", serverName)
+            totalTime += result
         }
 
-        sql = String.format("INSERT INTO sayanplaytime_daily (uuid) VALUES ('%s') ON DUPLICATE KEY UPDATE total_time = %s;", uuid.toString(), total_time);
-        execute(sql);
+        execute("INSERT INTO sayanplaytime_daily (uuid) VALUES ('$uuid') ON DUPLICATE KEY UPDATE total_time = $totalTime;")
     }
 
-    public long getPlayerPlayTime(UUID uuid, String gameMode) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_playtime WHERE uuid = '%s';", uuid);
-        return getInfo(sql, gameMode);
+    fun getPlayerPlayTime(uuid: UUID, server: String): Long {
+        return getServerInfo("SELECT * FROM sayanplaytime_playtime WHERE uuid = '$uuid';", server)
     }
 
-    public long getDailyPlayTime(UUID uuid, String gameMode) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_daily WHERE uuid = '%s';", uuid);
-        return getInfo(sql, gameMode);
+    fun getDailyPlayTime(uuid: UUID, server: String): Long {
+        return getServerInfo("SELECT * FROM sayanplaytime_daily WHERE uuid = '$uuid';", server)
     }
 
-    public long getWeeklyPlayTime(UUID uuid) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_weekly WHERE uuid = '%s';", uuid);
-        return getInfo(sql, "time");
+    fun getWeeklyPlayTime(uuid: UUID): Long {
+        return getServerInfo("SELECT * FROM sayanplaytime_weekly WHERE uuid = '$uuid';", "time")
     }
 
-
-    public long getDailyPlayTime(UUID uuid) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_daily WHERE uuid = '%s';", uuid);
-        return getInfo(sql, "total_time");
+    fun getDailyPlayTime(uuid: UUID): Long {
+        return getServerInfo("SELECT * FROM sayanplaytime_daily WHERE uuid = '$uuid';", "total_time")
     }
 
-    public long getPlayerPlayTime(String userName, String gameMode) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_playtime WHERE name = '%s';", userName);
-        return getInfo(sql, gameMode);
+    fun getPlayerPlayTime(userName: String, server: String): Long {
+        return getServerInfo("SELECT * FROM sayanplaytime_playtime WHERE name = '$userName';", server)
     }
 
-    public List<PPlayer> getTopPlayTimes(int amount) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_playtime ORDER BY total_time DESC LIMIT %s;", amount);
+    fun getTopPlayTimes(limit: Int): List<OnlinePlayer> {
+        if (isClosed) openConnection()
 
-        if (isClosed()) {
-            openConnection();
-        }
+        val onlinePlayers: MutableList<OnlinePlayer> = ArrayList()
+        val statement = connection!!.createStatement()
+        val resultSet = statement.executeQuery("SELECT * FROM sayanplaytime_playtime ORDER BY total_time DESC LIMIT $limit;")
 
-        List<PPlayer> pPlayers = new ArrayList<>();
-
-        Statement statement = connection.createStatement();
-        ResultSet resultset = statement.executeQuery(sql);
-        while (resultset.next()) {
-            String uuid = resultset.getString("uuid");
-            String name = resultset.getString("name");
-            long time = resultset.getLong("total_time");
-
-            pPlayers.add(new PPlayer(UUID.fromString(uuid), name, time));
-        }
-
-        resultset.close();
-        statement.close();
-
-        return pPlayers;
-    }
-
-    public List<PPlayer> getDailyPlayTimes() throws Exception {
-        String sql = "SELECT * FROM sayanplaytime_daily ORDER BY total_time;";
-
-        if (isClosed()) {
-            openConnection();
-        }
-
-        List<PPlayer> pPlayers = new ArrayList<>();
-
-        Statement statement = connection.createStatement();
-        ResultSet resultset = statement.executeQuery(sql);
-        while (resultset.next()) {
-            String uuid = resultset.getString("uuid");
-            String name = resultset.getString("name");
-            long time = resultset.getLong("total_time");
-
-            pPlayers.add(new PPlayer(UUID.fromString(uuid), name, time));
-        }
-
-        resultset.close();
-        statement.close();
-
-        return pPlayers;
-    }
-
-
-
-    public List<PPlayer> getWeeklyTops(int amount) throws Exception {
-        String sql = String.format("SELECT * FROM sayanplaytime_weekly ORDER BY time DESC LIMIT %s;", amount);
-
-        if (isClosed()) {
-            openConnection();
-        }
-
-        List<PPlayer> pPlayers = new ArrayList<>();
-
-        Statement statement = connection.createStatement();
-        ResultSet resultset = statement.executeQuery(sql);
-        while (resultset.next()) {
-            String uuid = resultset.getString("uuid");
-            String name = resultset.getString("name");
-            long time = resultset.getLong("time");
-
-            pPlayers.add(new PPlayer(UUID.fromString(uuid), name, time));
-        }
-
-        resultset.close();
-        statement.close();
-
-        return pPlayers;
-    }
-
-    private long getInfo(String sql, String gameMode) throws Exception {
-        if (isClosed()) {
-            openConnection();
-        }
-
-        Statement statement = connection.createStatement();
-        ResultSet resultset = statement.executeQuery(sql);
-
-        long time = 0;
-        if (resultset.next()) {
-            time = resultset.getLong(gameMode.toLowerCase());
-        }
-
-        resultset.close();
-        statement.close();
-
-        return time;
-    }
-
-    public Map<UUID, Long> getTopOnlineTimes(int amount) throws Exception {
-
-        Map<UUID, Long> playerMap = new HashMap<>();
-
-        String sql = "SELECT * FROM sayanplaytime_playtime ORDER BY total_time DESC LIMIT " + amount + ";";
-
-        if (isClosed()) {
-            openConnection();
-        }
-
-        Statement statement = connection.createStatement();
-        ResultSet resultset = statement.executeQuery(sql);
-        while (resultset.next()) {
-            UUID uuid = UUID.fromString(resultset.getString("uuid"));
-            long time = resultset.getLong("time");
-
-            playerMap.put(uuid, time);
-        }
-
-        resultset.close();
-        statement.close();
-
-        return playerMap;
-    }
-
-    public void resetWeekly() throws Exception {
-        String sql = "DELETE FROM sayanplaytime_weekly;";
-        execute(sql);
-    }
-
-    public void resetDaily() throws Exception {
-        String sql = "DELETE FROM sayanplaytime_daily;";
-        execute(sql);
-    }
-
-    private void execute(String sql) throws Exception {
-        if (isClosed()) {
-            openConnection();
-        }
-
-        Statement statement = connection.createStatement();
-        statement.executeUpdate(sql);
-        statement.close();
-    }
-
-    private float resultExecute(String sql, String gameMode) throws Exception {
-        if (isClosed()) {
-            openConnection();
-        }
-
-        Statement statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(sql);
-        float time = 0;
         while (resultSet.next()) {
-            time = resultSet.getInt(gameMode.toLowerCase());
+            val uuid = resultSet.getString("uuid")
+            val name = resultSet.getString("name")
+            val time = resultSet.getLong("total_time")
+
+            onlinePlayers.add(OnlinePlayer(UUID.fromString(uuid), name, time))
         }
-        statement.close();
-        return time;
+
+        resultSet.close()
+        statement.close()
+        return onlinePlayers
+    }
+
+    val dailyPlayTimes: List<OnlinePlayer>
+        get() {
+            if (isClosed) openConnection()
+
+            val onlinePlayers: MutableList<OnlinePlayer> = ArrayList()
+            val statement = connection!!.createStatement()
+            val resultSet = statement.executeQuery("SELECT * FROM sayanplaytime_daily ORDER BY total_time;")
+
+            while (resultSet.next()) {
+                val uuid = resultSet.getString("uuid")
+                val name = resultSet.getString("name")
+                val time = resultSet.getLong("total_time")
+
+                onlinePlayers.add(OnlinePlayer(UUID.fromString(uuid), name, time))
+            }
+
+            resultSet.close()
+            statement.close()
+            return onlinePlayers
+        }
+
+    fun getWeeklyTops(limit: Int): List<OnlinePlayer> {
+        if (isClosed) openConnection()
+
+        val onlinePlayers: MutableList<OnlinePlayer> = ArrayList()
+        val statement = connection!!.createStatement()
+        val resultSet = statement.executeQuery("SELECT * FROM sayanplaytime_weekly ORDER BY time DESC LIMIT $limit;")
+
+        while (resultSet.next()) {
+            val uuid = resultSet.getString("uuid")
+            val name = resultSet.getString("name")
+            val time = resultSet.getLong("time")
+
+            onlinePlayers.add(OnlinePlayer(UUID.fromString(uuid), name, time))
+        }
+
+        resultSet.close()
+        statement.close()
+        return onlinePlayers
+    }
+
+    private fun getServerInfo(sql: String, server: String): Long {
+        if (isClosed) openConnection()
+
+        val statement = connection!!.createStatement()
+        val resultSet = statement.executeQuery(sql)
+        var time: Long = 0
+
+        if (resultSet.next()) {
+            time = resultSet.getLong(server)
+        }
+
+        resultSet.close()
+        statement.close()
+        return time
+    }
+
+    fun getTopOnlineTimes(limit: Int): Map<UUID, Long> {
+        val playerMap: MutableMap<UUID, Long> = HashMap()
+        if (isClosed) openConnection()
+
+        val statement = connection!!.createStatement()
+        val resultSet = statement.executeQuery("SELECT * FROM sayanplaytime_playtime ORDER BY total_time DESC LIMIT $limit;")
+
+        while (resultSet.next()) {
+            val uuid = UUID.fromString(resultSet.getString("uuid"))
+            val time = resultSet.getLong("time")
+            playerMap[uuid] = time
+        }
+
+        resultSet.close()
+        statement.close()
+        return playerMap
+    }
+
+    fun resetWeekly() {
+        val sql = "DELETE FROM sayanplaytime_weekly;"
+        execute(sql)
+    }
+
+    fun resetDaily() {
+        execute("DELETE FROM sayanplaytime_daily;")
+    }
+
+    private fun execute(sql: String) {
+        if (isClosed) openConnection()
+
+        val statement = connection!!.createStatement()
+        statement.executeUpdate(sql)
+        statement.close()
+    }
+
+    private fun resultExecute(sql: String, server: String): Long {
+        if (isClosed) openConnection()
+
+        val statement = connection!!.createStatement()
+        val resultSet = statement.executeQuery(sql)
+        var time: Long = 0
+
+        while (resultSet.next()) {
+            time = resultSet.getLong(server)
+        }
+
+        statement.close()
+        return time
     }
 }
