@@ -9,6 +9,6 @@ object Utils {
         val seconds = total_time / 1000
         val hours = (seconds / 3600).toInt()
         val minutes = (seconds % 3600 / 60).toInt()
-        return String.format("%sh %sm", hours, minutes)
+        return "${hours}h ${minutes}m"
     }
 }

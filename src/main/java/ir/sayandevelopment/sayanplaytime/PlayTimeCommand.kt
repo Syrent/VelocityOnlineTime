@@ -25,13 +25,7 @@ class PlayTimeCommand(
                     val hours = (seconds / 3600).toInt()
                     val minutes = (seconds % 3600 / 60).toInt()
 
-                    player.sendMessage(
-                        formatter.deserialize(
-                            String.format(
-                                PREFIX + "<color:#00F3FF>Total playtime:</color> <color:#C0D3EF>%sh %sm", hours, minutes
-                            )
-                        )
-                    )
+                    player.sendMessage(formatter.deserialize(PREFIX + "<color:#00F3FF>Total playtime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }
@@ -54,16 +48,7 @@ class PlayTimeCommand(
                             val seconds = totalTime / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    String.format(
-                                        "$PREFIX<color:#C1D6F1>%s<color:#00F3FF>'s Total playtime:</color> <color:#C0D3EF>%sh %sm",
-                                        userName,
-                                        hours,
-                                        minutes
-                                    )
-                                )
-                            )
+                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>$userName<color:#00F3FF>'s Total playtime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         } catch (ex: Exception) {
                             ex.printStackTrace()
                         }
@@ -76,29 +61,13 @@ class PlayTimeCommand(
                             val totalTime: Long =
                                 plugin.sql.getPlayerPlayTime(userName, args[2].lowercase(Locale.getDefault()))
                             if (totalTime == 0L) {
-                                player.sendMessage(
-                                    formatter.deserialize(
-                                        String.format(
-                                            PREFIX + "<color:#D72D32>Player playtime is empty on <color:#C1D6F1>%s</color>!",
-                                            Utils.capitalize(
-                                                args[2]
-                                            )
-                                        )
-                                    )
-                                )
+                                player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>Player playtime is empty on <color:#C1D6F1>${Utils.capitalize(args[2])}</color>!"))
                                 return@buildTask
                             }
                             val seconds = totalTime / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    String.format(
-                                        PREFIX + "<color:#C1D6F1>%s</color><color:#00F3FF>'s playtime in <color:#C1D6F1>%s</color>:</color> <color:#C0D3EF>%sh %sm",
-                                        userName, Utils.capitalize(args[2]), hours, minutes
-                                    )
-                                )
-                            )
+                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>$userName</color><color:#00F3FF>'s playtime in <color:#C1D6F1>${Utils.capitalize(args[2])}</color>:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         } catch (ex: Exception) {
                             ex.printStackTrace()
                         }
@@ -120,14 +89,7 @@ class PlayTimeCommand(
                                 val seconds = onlinePlayers[i].time / 1000
                                 val hours = (seconds / 3600).toInt()
                                 val minutes = (seconds % 3600 / 60).toInt()
-                                player.sendMessage(
-                                    formatter.deserialize(
-                                        String.format(
-                                            "<color:#EE9900>[<color:#F9BD03>%s<color:#EE9900>] <color:#C1D6F1>%s</color><color:#00F3FF> | </color> <color:#C0D3EF>%sh %sm",
-                                            i + 1, onlinePlayers[i].userName, hours, minutes
-                                        )
-                                    )
-                                )
+                                player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m"))
                             }
                         } catch (ignored: Exception) {
                         }
@@ -148,14 +110,7 @@ class PlayTimeCommand(
                             val seconds = onlinePlayers[i].time / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    String.format(
-                                        "<color:#EE9900>[<color:#F9BD03>%s<color:#EE9900>] <color:#C1D6F1>%s</color><color:#00F3FF> | </color> <color:#C0D3EF>%sh %sm",
-                                        i + 1, onlinePlayers[i].userName, hours, minutes
-                                    )
-                                )
-                            )
+                            player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m",))
                         }
                     } catch (ignored: Exception) {
                     }
@@ -174,15 +129,7 @@ class PlayTimeCommand(
                             val seconds: Long = plugin.sql.getWeeklyPlayTime(player.uniqueId) / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    String.format(
-                                        PREFIX +
-                                                "<color:#C1D6F1>%s<color:#00F3FF>'s Total playtime:</color> <color:#C0D3EF>%sh %sm",
-                                        player.username, hours, minutes
-                                    )
-                                )
-                            )
+                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>${player.username}<color:#00F3FF>'s Total playtime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         }
                     } catch (ignored: Exception) {
                     }
@@ -229,29 +176,13 @@ class PlayTimeCommand(
                             )
                         )
                         if (totalTime == 0L) {
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    String.format(
-                                        PREFIX + "<color:#D72D32>You don't have any data in <color:#C1D6F1>%s</color>!",
-                                        Utils.capitalize(
-                                            args[0]
-                                        )
-                                    )
-                                )
-                            )
+                            player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>You don't have any data in <color:#C1D6F1>${Utils.capitalize(args[0])}</color>!"))
                             return@buildTask
                         }
                         val seconds = totalTime / 1000
                         val hours = (seconds / 3600).toInt()
                         val minutes = (seconds % 3600 / 60).toInt()
-                        player.sendMessage(
-                            formatter.deserialize(
-                                String.format(
-                                    "$PREFIX<color:#C1D6F1>%s</color><color:#00F3FF> playtime:</color> <color:#C0D3EF>%sh %sm",
-                                    Utils.capitalize(args[0]), hours, minutes
-                                )
-                            )
-                        )
+                        player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>${Utils.capitalize(args[0])}</color><color:#00F3FF> playtime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                     }

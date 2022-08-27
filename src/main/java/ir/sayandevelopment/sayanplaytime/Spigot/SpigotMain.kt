@@ -1,26 +1,25 @@
-package ir.sayandevelopment.sayanplaytime.Spigot;
+package ir.sayandevelopment.sayanplaytime.Spigot
 
-import ir.sayandevelopment.sayanplaytime.database.MySQL;
-import ir.sayandevelopment.sayanplaytime.database.SQL;
-import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPlugin
+import ir.sayandevelopment.sayanplaytime.Spigot.SpigotMain
+import ir.sayandevelopment.sayanplaytime.database.MySQL
+import org.bukkit.Bukkit
+import ir.sayandevelopment.sayanplaytime.database.SQL
 
-public class SpigotMain extends JavaPlugin {
-
-    public static SQL SQL;
-
-    @Override
-    public void onEnable() {
-        String host = "localhost";
-        String database = "server";
-        String user = "server";
-        String pass = "yG%@NU6wz}i#)ZQN";
-        int port = 3306;
-
-        SQL = new MySQL(null, host, port, database, user, pass);
-
+class SpigotMain : JavaPlugin() {
+    override fun onEnable() {
+        val host = "localhost"
+        val database = "server"
+        val user = "server"
+        val pass = "yG%@NU6wz}i#)ZQN"
+        val port = 3306
+        SQL = MySQL(null, host, port, database, user, pass)
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new Placeholder().register();
+            Placeholder().register()
         }
+    }
+
+    companion object {
+        var SQL: SQL? = null
     }
 }

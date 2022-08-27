@@ -1,44 +1,38 @@
-package ir.sayandevelopment.sayanplaytime.Spigot;
+package ir.sayandevelopment.sayanplaytime.Spigot
 
-import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import org.bukkit.OfflinePlayer;
+import me.clip.placeholderapi.expansion.PlaceholderExpansion
+import org.bukkit.OfflinePlayer
+import java.lang.Exception
 
-public class Placeholder extends PlaceholderExpansion {
-
-    @Override
-    public String getAuthor() {
-        return "Syrent231";
+class Placeholder : PlaceholderExpansion() {
+    override fun getAuthor(): String {
+        return "Syrent231"
     }
 
-    @Override
-    public String getIdentifier() {
-        return "playtime";
+    override fun getIdentifier(): String {
+        return "playtime"
     }
 
-    @Override
-    public String getVersion() {
-        return "1.0.0";
+    override fun getVersion(): String {
+        return "1.0.0"
     }
 
-    @Override
-    public boolean persist() {
-        return true; // This is required or else PlaceholderAPI will unregister the Expansion on reload
+    override fun persist(): Boolean {
+        return true // This is required or else PlaceholderAPI will unregister the Expansion on reload
     }
 
-    @Override
-    public String onRequest(OfflinePlayer player, String params) {
-        if (params.equalsIgnoreCase("playtime")) {
+    override fun onRequest(player: OfflinePlayer, params: String): String? {
+        return if (params.equals("playtime", ignoreCase = true)) {
             try {
-                long total_time = SpigotMain.SQL.getPlayerPlayTime(player.getUniqueId(), "total_time");
-                long seconds = total_time / 1000;
-                int hours = (int) (seconds / 3600);
-                int minutes = (int) ((seconds % 3600) / 60);
-                return String.format("%sh %sm", hours, minutes);
-            } catch (Exception e) {
-                return "-";
+                val total_time = SpigotMain.SQL.getPlayerPlayTime(player.uniqueId, "total_time")
+                val seconds = total_time / 1000
+                val hours = (seconds / 3600).toInt()
+                val minutes = (seconds % 3600 / 60).toInt()
+                "${hours}h ${minutes}m"
+            } catch (e: Exception) {
+                "-"
             }
-        }
-
-        return "-"; // Placeholder is unknown by the Expansion
+        } else "-"
+        // Placeholder is unknown by the Expansion
     }
 }

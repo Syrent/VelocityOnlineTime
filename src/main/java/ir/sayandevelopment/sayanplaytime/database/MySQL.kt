@@ -4,7 +4,7 @@ import ir.sayandevelopment.sayanplaytime.SayanPlayTime
 import java.sql.DriverManager
 
 class MySQL(
-    plugin: SayanPlayTime,
+    plugin: SayanPlayTime?,
     private val host: String,
     private val port: Int,
     private val database: String,

@@ -1,6 +1,7 @@
 package ir.sayandevelopment.sayanplaytime.controller
 
 import ir.sayandevelopment.sayanplaytime.*
+import ir.sayandevelopment.sayanplaytime.utils.DateUtils
 import ir.sayandevelopment.sayanplaytime.utils.Utils
 import ir.syrent.sayanskyblock.storage.Settings
 import net.dv8tion.jda.api.EmbedBuilder
@@ -100,14 +101,7 @@ class DiscordController(
                                     "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
                         )
                     )
-                    player.sendMessage(
-                        miniMessage.deserialize(
-                            String.format(
-                                PlayTimeCommand.PREFIX + "<bold><color:#F2E205>%s Be Onvan Top PlayTime Hafte Barande Rank VIP Shod!",
-                                username
-                            )
-                        )
-                    )
+                    player.sendMessage(miniMessage.deserialize("${PlayTimeCommand.PREFIX}<bold><color:#F2E205>${username} Be Onvan Top PlayTime Hafte Barande Rank VIP Shod!"))
                 }
 
                 sendWinnerMessage()
@@ -127,11 +121,8 @@ class DiscordController(
 
     private fun giveReward(username: String) {
         // TODO: Read reward command from yaml file
-        plugin.server.commandManager.executeAsync(
-            plugin.server.consoleCommandSource,
-            String.format("lpv user %s parent addtemp baron 7d", username)
-        )
-        plugin.logger.info(String.format("%s won weekly reward!", username))
+        plugin.server.commandManager.executeAsync(plugin.server.consoleCommandSource, String.format("lpv user %s parent addtemp baron 7d", username))
+        plugin.logger.info("${username} won weekly reward!")
     }
 
     // TODO: Read embed content from config file
@@ -143,7 +134,7 @@ class DiscordController(
         val minutes = (seconds % 3600 / 60).toInt()
 
         val embed = EmbedBuilder()
-        embed.setTitle("\uD83E\uDDED  PlayTime | ${DateUtils.getCurrentShamsidate()}", null)
+        embed.setTitle("\uD83E\uDDED  PlayTime | ${DateUtils.currentShamsidate}", null)
         embed.setColor(Color(0xc1d6f1))
         embed.appendDescription("⏱️ مسابقه بیشترین پلی تایم این هفته سرور به پایان رسید!")
         embed.appendDescription("\n")
@@ -181,13 +172,7 @@ class DiscordController(
             val totalTime = onlinePlayer.time
 
             val embed = EmbedBuilder()
-            embed.setTitle(
-                String.format(
-                    "\uD83E\uDDED %s Daily PlayTime | %s",
-                    onlinePlayer.userName,
-                    DateUtils.getCurrentShamsidate()
-                ), null
-            )
+            embed.setTitle("\uD83E\uDDED ${onlinePlayer.userName} Daily PlayTime | ${DateUtils.currentShamsidate}", null)
             embed.setColor(Color(0x2F5FBE))
             embed.appendDescription("Total Time: ${Utils.formatTime(totalTime)}")
             embed.appendDescription("\n")
@@ -203,7 +188,7 @@ class DiscordController(
             }
 
             embed.setFooter("${Settings.networkName} | PlayTime")
-            embed.setThumbnail(String.format("http://cravatar.eu/avatar/%s/64.png", onlinePlayer.userName))
+            embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayer.userName}/64.png")
 
             staffPlayTimeChannel?.sendMessageEmbeds(embed.build())?.queue() ?: throw NullPointerException("Staff playtime channel not found!")
         }
