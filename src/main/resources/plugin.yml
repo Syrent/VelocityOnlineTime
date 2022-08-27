@@ -1,5 +1,5 @@
 name: SayanPlayTime
-version: "2.0.0"
+version: '${version}'
 main: ir.sayandevelopment.sayanplaytime.Spigot.SpigotMain
 api-version: 1.13
 prefix: SayanPlayTime

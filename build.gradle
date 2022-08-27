@@ -7,7 +7,7 @@ plugins {
 }
 
 group = 'ir.sayandevelopment'
-version = '1.0'
+version = findProperty("version")
 
 repositories {
     mavenCentral()
