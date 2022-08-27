@@ -1,7 +1,6 @@
 package ir.sayandevelopment.sayanplaytime.controller
 
 import ir.sayandevelopment.sayanplaytime.*
-import ir.sayandevelopment.sayanplaytime.storage.Message
 import ir.sayandevelopment.sayanplaytime.utils.Utils
 import ir.syrent.sayanskyblock.storage.Settings
 import net.dv8tion.jda.api.EmbedBuilder
@@ -167,7 +166,7 @@ class DiscordController(
                     "\uD83D\uDFE3 QPixel.IR/Discord\n" +
                     "\uD83C\uDF10 wWw.QPixel.IR"
         )
-        embed.setFooter("${Settings.getMessage(Message.NETWORK_NAME)} | PlayTime")
+        embed.setFooter("${Settings.networkName} | PlayTime")
 
         embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayers[0].userName}/64.png")
         playtimeChannel?.sendMessageEmbeds(embed.build())
@@ -176,7 +175,7 @@ class DiscordController(
     }
 
     // TODO: Read embed content from config file
-    private fun sendDailyMessage() {
+    fun sendDailyMessage() {
         val onlinePlayerList: List<OnlinePlayer> = plugin.sql.dailyPlayTimes
         for (onlinePlayer: OnlinePlayer in onlinePlayerList) {
             val totalTime = onlinePlayer.time
@@ -203,7 +202,7 @@ class DiscordController(
                 }
             }
 
-            embed.setFooter("${Settings.getMessage(Message.NETWORK_NAME)} | PlayTime")
+            embed.setFooter("${Settings.networkName} | PlayTime")
             embed.setThumbnail(String.format("http://cravatar.eu/avatar/%s/64.png", onlinePlayer.userName))
 
             staffPlayTimeChannel?.sendMessageEmbeds(embed.build())?.queue() ?: throw NullPointerException("Staff playtime channel not found!")

@@ -1,88 +1,56 @@
 package ir.syrent.sayanskyblock.storage
 
-import ir.sayandevelopment.sayanplaytime.storage.Message
-import ir.sayandevelopment.sayanplaytime.utils.TextReplacement
 import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.io.File
 import java.nio.file.Path
 
 
 object Settings {
 
-    private val messages = mutableMapOf<Message, String>()
-
-    private var settingsLoader = YamlConfigurationLoader.builder().path(Path.of("settings.yml")).build()
-    private var databaseLoader = YamlConfigurationLoader.builder().path(Path.of("database.yml")).build()
-    private var messagesLoader = YamlConfigurationLoader.builder().path(Path.of("messages.yml")).build()
+    private var settingsLoader: YamlConfigurationLoader? = null
 
     var settingsConfig: CommentedConfigurationNode? = null
-    var databaseConfig: CommentedConfigurationNode? = null
-    var messagesConfig: CommentedConfigurationNode? = null
 
-    var databaseType: String? = "mysql"
-    var host: String? = "localhost"
-    var port: Int? = 3306
-    var username: String? = "root"
-    var database: String? = "minecraft"
-    var password: String? = ""
+    var networkName: String? = null
+    var type: String? = null
+    var host: String? = null
+    var port: Int? = null
+    var username: String? = null
+    var database: String? = null
+    var password: String? = null
 
     init {
         load()
         refresh()
     }
 
-    private fun load() {
-        settingsConfig = settingsLoader.load()
-        settingsLoader.save(settingsConfig)
-        databaseConfig = databaseLoader.load()
-        databaseLoader.save(databaseConfig)
-        messagesConfig = messagesLoader.load()
-        messagesLoader.save(messagesConfig)
+    fun load() {
+        settingsLoader = yamlConfig("settings")
 
-        databaseType = databaseConfig?.node("type")?.string ?: "mysql"
-        host = databaseConfig?.node("host")?.string ?: "localhost"
-        port = databaseConfig?.node("port")?.int ?: 3306
-        username = databaseConfig?.node("username")?.string ?: "root"
-        database = databaseConfig?.node("database")?.string ?: "minecraft"
-        password = databaseConfig?.node("password")?.string ?: ""
+        settingsConfig = settingsLoader?.load()
 
-        messages.apply {
-            this.clear()
-            for (message in Message.values()) {
-                if (message == Message.EMPTY) {
-                    this[message] = ""
-                    continue
-                }
+        networkName = settingsConfig?.node("general", "network_name")?.getString("ExampleNetwork")
+        type = settingsConfig?.node("database", "type")?.getString("mysql")
+        host = settingsConfig?.node("database", "host")?.getString("localhost")
+        port = settingsConfig?.node("database", "port")?.getInt(3306)
+        username = settingsConfig?.node("database", "username")?.getString("root")
+        database = settingsConfig?.node("database", "database")?.getString("minecraft")
+        password = settingsConfig?.node("database", "password")?.getString("")
+    }
 
-                this[message] = messagesConfig?.node(message.path)?.string ?: messagesConfig?.node(Message.UNKNOWN_MESSAGE.path)?.string ?: ""
-            }
+    private fun yamlConfig(name: String): YamlConfigurationLoader {
+        val file = File("plugins/SayanPlaytime/$name.yml")
+        val parent = file.parentFile
+        if (!parent.exists()) {
+            parent.mkdirs()
         }
+        if (!file.exists()) file.createNewFile()
+        return YamlConfigurationLoader.builder().path(Path.of(file.path)).build()
     }
 
     fun refresh() {
-        settingsLoader.save(settingsConfig)
-        databaseLoader.save(databaseConfig)
-        messagesLoader.save(messagesConfig)
-    }
-
-    fun formatMessage(message: Message, vararg replacements: TextReplacement): String {
-        val string = getMessage(message)
-        string.replace("\$prefix", getMessage(Message.PREFIX))
-        string.replace("\$successful_prefix", getMessage(Message.SUCCESSFUL_PREFIX))
-        string.replace("\$warn_prefix", getMessage(Message.WARN_PREFIX))
-        string.replace("\$error_prefix", getMessage(Message.ERROR_PREFIX))
-        for (replacement in replacements) {
-            string.replace("\$${replacement.from}", replacement.to)
-        }
-        return string
-    }
-
-    fun getMessage(message: Message): String {
-        return messages[message] ?: messages[Message.UNKNOWN_MESSAGE] ?: "Unknown message"
-    }
-
-    fun getConsolePrefix(): String {
-        return getMessage(Message.CONSOLE_PREFIX)
+        settingsLoader?.save(settingsConfig)
     }
 
 }

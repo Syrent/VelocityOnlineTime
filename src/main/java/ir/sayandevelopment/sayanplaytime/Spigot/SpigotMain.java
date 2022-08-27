@@ -11,13 +11,13 @@ public class SpigotMain extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        String host = "45.81.16.84";
+        String host = "localhost";
         String database = "server";
         String user = "server";
         String pass = "yG%@NU6wz}i#)ZQN";
         int port = 3306;
 
-        SQL = new MySQL(host, port, database, user, pass);
+        SQL = new MySQL(null, host, port, database, user, pass);
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new Placeholder().register();
