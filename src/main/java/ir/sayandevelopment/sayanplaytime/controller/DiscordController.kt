@@ -1,7 +1,8 @@
 package ir.sayandevelopment.sayanplaytime.controller
 
 import ir.sayandevelopment.sayanplaytime.*
-import ir.syrent.sayanskyblock.storage.Message
+import ir.sayandevelopment.sayanplaytime.storage.Message
+import ir.sayandevelopment.sayanplaytime.utils.Utils
 import ir.syrent.sayanskyblock.storage.Settings
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA

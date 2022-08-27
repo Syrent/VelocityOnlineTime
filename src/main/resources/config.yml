@@ -1,1 +1,2 @@
-GameMode: Lobby
+general:
+    server_name: Lobby

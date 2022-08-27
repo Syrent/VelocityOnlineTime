@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime
+package ir.sayandevelopment.sayanplaytime.utils
 
 object Utils {
     fun capitalize(string: String): String {
