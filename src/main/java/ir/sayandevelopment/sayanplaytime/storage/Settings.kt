@@ -1,19 +1,15 @@
 package ir.syrent.sayanskyblock.storage
 
-import org.spongepowered.configurate.CommentedConfigurationNode
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import com.moandjiezana.toml.Toml
+import ir.sayandevelopment.sayanplaytime.utils.ResourceUtils
 import java.io.File
-import java.nio.file.Path
 
 
 object Settings {
 
-    private var settingsLoader: YamlConfigurationLoader? = null
-
-    var settingsConfig: CommentedConfigurationNode? = null
+    var configuration: Toml? = null
 
     var networkName: String? = null
-    var type: String? = null
     var host: String? = null
     var port: Int? = null
     var username: String? = null
@@ -22,35 +18,22 @@ object Settings {
 
     init {
         load()
-        refresh()
     }
 
     fun load() {
-        settingsLoader = yamlConfig("settings")
-
-        settingsConfig = settingsLoader?.load()
-
-        networkName = settingsConfig?.node("general", "network_name")?.getString("ExampleNetwork")
-        type = settingsConfig?.node("database", "type")?.getString("mysql")
-        host = settingsConfig?.node("database", "host")?.getString("localhost")
-        port = settingsConfig?.node("database", "port")?.getInt(3306)
-        username = settingsConfig?.node("database", "username")?.getString("root")
-        database = settingsConfig?.node("database", "database")?.getString("minecraft")
-        password = settingsConfig?.node("database", "password")?.getString("")
-    }
-
-    private fun yamlConfig(name: String): YamlConfigurationLoader {
-        val file = File("plugins/SayanPlaytime/$name.yml")
-        val parent = file.parentFile
-        if (!parent.exists()) {
-            parent.mkdirs()
+        var configurationFile = File("configuration.toml")
+        if (!configurationFile.exists()) {
+            configurationFile = ResourceUtils.copyResource("configuration.toml", configurationFile)
         }
-        if (!file.exists()) file.createNewFile()
-        return YamlConfigurationLoader.builder().path(Path.of(file.path)).build()
-    }
+        configuration = Toml().read(configurationFile)
 
-    fun refresh() {
-        settingsLoader?.save(settingsConfig)
+
+        networkName = configuration?.getString("general.network.name", "Example Network")
+        host = configuration?.getString("database.host", "localhost")
+        port = configuration?.getLong("database.port", 3306)?.toInt()
+        username = configuration?.getString("database.user")
+        database = configuration?.getString("database.database")
+        password = configuration?.getString("database.password")
     }
 
 }
