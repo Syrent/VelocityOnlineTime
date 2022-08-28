@@ -10,8 +10,7 @@ import java.io.InputStream
 object ResourceUtils {
 
     private fun getResource(resourceFileName: String): InputStream? {
-        val classLoader = Thread.currentThread().contextClassLoader
-        return classLoader.getResourceAsStream(resourceFileName)
+        return ResourceUtils::class.java.classLoader.getResourceAsStream(resourceFileName)
     }
 
     fun copyResource(resourceFileName: String, file: File): File {

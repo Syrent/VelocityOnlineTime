@@ -4,7 +4,6 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.DisconnectEvent
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import ir.syrent.velocityonlinetime.utils.MilliCounter
-import java.lang.Exception
 import java.util.*
 
 class DisconnectListener(

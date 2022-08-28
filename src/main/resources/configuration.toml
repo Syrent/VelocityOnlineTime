@@ -9,6 +9,5 @@
     password = "password"
 [discord]
     token = "example token"
-    [channel]
-        weekly = "top weekly onlinetime channel"
-        staff = "staff onlinetime channel id"
+    weekly = "top weekly onlinetime channel"
+    staff = "staff onlinetime channel id"

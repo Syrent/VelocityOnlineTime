@@ -5,7 +5,6 @@ import com.velocitypowered.api.proxy.Player
 import ir.syrent.velocityonlinetime.controller.DiscordController
 import ir.syrent.velocityonlinetime.utils.Utils
 import net.kyori.adventure.text.minimessage.MiniMessage
-import java.lang.Exception
 import java.util.*
 import java.util.concurrent.CompletableFuture
 

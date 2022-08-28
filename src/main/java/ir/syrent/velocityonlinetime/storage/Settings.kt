@@ -29,7 +29,11 @@ object Settings {
     }
 
     fun load() {
-        var configurationFile = File("configuration.toml")
+        var configurationFile = File("plugins/VelocityOnlineTime/configuration.toml")
+        val parentFile = configurationFile.parentFile
+        if (!parentFile.exists()) {
+            parentFile.mkdirs()
+        }
         if (!configurationFile.exists()) {
             configurationFile = ResourceUtils.copyResource("configuration.toml", configurationFile)
         }
@@ -48,8 +52,8 @@ object Settings {
 
         /* Discord */
         discordToken = configuration?.getString("discord.token")!!
-        weeklyTopChannel = configuration?.getString("discord.weeklytop.channel")!!
-        staffOnlineTimeChannel = configuration?.getString("discord.staffonlinetime.channel")!!
+        weeklyTopChannel = configuration?.getString("discord.weekly")!!
+        staffOnlineTimeChannel = configuration?.getString("discord.staff")!!
     }
 
 }

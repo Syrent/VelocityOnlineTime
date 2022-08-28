@@ -37,8 +37,9 @@ public class VelocityOnlineTime {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
-        initializeMySQL();
         Settings.INSTANCE.load();
+
+        initializeMySQL();
         discordController = new DiscordController(this);
 
         registerListeners();
@@ -47,7 +48,6 @@ public class VelocityOnlineTime {
     }
 
     public void initializeMySQL() {
-        // TODO: Read data from yaml file
         String host = Settings.INSTANCE.getHost();
         String database = Settings.INSTANCE.getDatabase();
         String username = Settings.INSTANCE.getUsername();
