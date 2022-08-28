@@ -7,3 +7,8 @@
     user = "root"
     database = "example_network"
     password = "password"
+[discord]
+    token = "example token"
+    [channel]
+        weekly = "top weekly playtime channel"
+        staff = "staff playtime channel id"

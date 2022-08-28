@@ -9,7 +9,7 @@ import java.io.InputStream
 
 object ResourceUtils {
 
-    fun getResource(resourceFileName: String): InputStream? {
+    private fun getResource(resourceFileName: String): InputStream? {
         val classLoader = Thread.currentThread().contextClassLoader
         return classLoader.getResourceAsStream(resourceFileName)
     }

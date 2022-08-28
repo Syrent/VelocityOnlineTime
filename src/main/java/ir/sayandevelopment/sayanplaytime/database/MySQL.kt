@@ -10,7 +10,7 @@ class MySQL(
     private val database: String,
     private val username: String,
     private val password: String
-) : SQL(plugin) {
+) : SQL(plugin!!) {
     override fun openConnection() {
         Class.forName("com.mysql.cj.jdbc.Driver")
         connection = DriverManager.getConnection("jdbc:mysql://$host:$port/$database", username, password)

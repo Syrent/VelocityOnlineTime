@@ -3,7 +3,7 @@ package ir.sayandevelopment.sayanplaytime.controller
 import ir.sayandevelopment.sayanplaytime.*
 import ir.sayandevelopment.sayanplaytime.utils.DateUtils
 import ir.sayandevelopment.sayanplaytime.utils.Utils
-import ir.syrent.sayanskyblock.storage.Settings
+import ir.sayandevelopment.sayanplaytime.storage.Settings
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -122,7 +122,7 @@ class DiscordController(
     private fun giveReward(username: String) {
         // TODO: Read reward command from yaml file
         plugin.server.commandManager.executeAsync(plugin.server.consoleCommandSource, String.format("lpv user %s parent addtemp baron 7d", username))
-        plugin.logger.info("${username} won weekly reward!")
+        plugin.logger.info("$username won weekly reward!")
     }
 
     // TODO: Read embed content from config file

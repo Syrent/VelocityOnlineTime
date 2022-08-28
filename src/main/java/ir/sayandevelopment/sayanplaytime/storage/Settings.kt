@@ -1,4 +1,4 @@
-package ir.syrent.sayanskyblock.storage
+package ir.sayandevelopment.sayanplaytime.storage
 
 import com.moandjiezana.toml.Toml
 import ir.sayandevelopment.sayanplaytime.utils.ResourceUtils
@@ -7,14 +7,22 @@ import java.io.File
 
 object Settings {
 
-    var configuration: Toml? = null
+    private var configuration: Toml? = null
 
-    var networkName: String? = null
-    var host: String? = null
-    var port: Int? = null
-    var username: String? = null
-    var database: String? = null
-    var password: String? = null
+    /* General */
+    var networkName: String = "Example Network"
+
+    /* Database */
+    var host: String = "localhost"
+    var port: Int = 3306
+    var username: String = "root"
+    var database: String = ""
+    var password: String = ""
+
+    /* Discord */
+    var discordToken: String = ""
+    var weeklyTopChannel: String = ""
+    var staffOnlineTimeChannel: String = ""
 
     init {
         load()
@@ -28,12 +36,20 @@ object Settings {
         configuration = Toml().read(configurationFile)
 
 
-        networkName = configuration?.getString("general.network.name", "Example Network")
-        host = configuration?.getString("database.host", "localhost")
-        port = configuration?.getLong("database.port", 3306)?.toInt()
-        username = configuration?.getString("database.user")
-        database = configuration?.getString("database.database")
-        password = configuration?.getString("database.password")
+        /* General */
+        networkName = configuration?.getString("general.network.name", "Example Network")!!
+
+        /* Database */
+        host = configuration?.getString("database.host", "localhost")!!
+        port = configuration?.getLong("database.port", 3306)?.toInt() ?: 3306
+        username = configuration?.getString("database.user")!!
+        database = configuration?.getString("database.database")!!
+        password = configuration?.getString("database.password")!!
+
+        /* Discord */
+        discordToken = configuration?.getString("discord.token")!!
+        weeklyTopChannel = configuration?.getString("discord.weeklytop.channel")!!
+        staffOnlineTimeChannel = configuration?.getString("discord.staffonlinetime.channel")!!
     }
 
 }

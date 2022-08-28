@@ -1,6 +1,6 @@
 name: SayanPlayTime
 version: '${version}'
-main: ir.sayandevelopment.sayanplaytime.Spigot.SpigotMain
+main: ir.sayandevelopment.sayanplaytime.spigot.SpigotMain
 api-version: 1.13
 prefix: SayanPlayTime
 authors: [ Syrent ]

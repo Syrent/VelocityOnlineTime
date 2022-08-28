@@ -38,11 +38,7 @@ class PlayTimeCommand(
                         try {
                             val totalTime: Long = plugin.sql.getPlayerPlayTime(userName, "total_time")
                             if (totalTime == 0L) {
-                                player.sendMessage(
-                                    formatter.deserialize(
-                                        PREFIX + "<color:#D72D32>Player not found!"
-                                    )
-                                )
+                                player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>Player not found!"))
                                 return@buildTask
                             }
                             val seconds = totalTime / 1000
@@ -110,7 +106,7 @@ class PlayTimeCommand(
                             val seconds = onlinePlayers[i].time / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m",))
+                            player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         }
                     } catch (ignored: Exception) {
                     }

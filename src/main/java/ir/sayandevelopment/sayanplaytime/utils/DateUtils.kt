@@ -5,13 +5,13 @@ import java.util.*
 object DateUtils {
     val currentShamsidate: String
         get() {
-            val loc = Locale("en_US")
-            val util = DateUtils
-            val sc = SolarCalendar()
-            return sc.year.toString() + "/" + String.format(loc, "%02d", sc.month) + "/" + String.format(
-                loc,
+            val locale = Locale("en_US")
+            val solarCalendar = SolarCalendar()
+
+            return solarCalendar.year.toString() + "/" + String.format(locale, "%02d", solarCalendar.month) + "/" + String.format(
+                locale,
                 "%02d",
-                sc.date
+                solarCalendar.date
             )
         }
 
@@ -23,8 +23,8 @@ object DateUtils {
         var year = 0
 
         constructor() {
-            val MiladiDate = Date()
-            calcSolarCalendar(MiladiDate)
+            val miladiDate = Date()
+            calcSolarCalendar(miladiDate)
         }
 
         constructor(MiladiDate: Date) {
@@ -36,7 +36,7 @@ object DateUtils {
             val miladiYear = MiladiDate.year + 1900
             val miladiMonth = MiladiDate.month + 1
             val miladiDate = MiladiDate.date
-            val WeekDay = MiladiDate.day
+            val weekDay = MiladiDate.day
             val buf1 = IntArray(12)
             val buf2 = IntArray(12)
             buf1[0] = 0
@@ -66,7 +66,7 @@ object DateUtils {
             if (miladiYear % 4 != 0) {
                 date = buf1[miladiMonth - 1] + miladiDate
                 if (date > 79) {
-                    date = date - 79
+                    date -= 79
                     if (date <= 186) {
                         when (date % 31) {
                             0 -> {
@@ -75,12 +75,12 @@ object DateUtils {
                             }
                             else -> {
                                 month = date / 31 + 1
-                                date = date % 31
+                                date %= 31
                             }
                         }
                         year = miladiYear - 621
                     } else {
-                        date = date - 186
+                        date -= 186
                         when (date % 30) {
                             0 -> {
                                 month = date / 30 + 6
@@ -88,7 +88,7 @@ object DateUtils {
                             }
                             else -> {
                                 month = date / 30 + 7
-                                date = date % 30
+                                date %= 30
                             }
                         }
                         year = miladiYear - 621
@@ -99,7 +99,7 @@ object DateUtils {
                     } else {
                         10
                     }
-                    date = date + ld
+                    date += ld
                     when (date % 30) {
                         0 -> {
                             month = date / 30 + 9
@@ -107,7 +107,7 @@ object DateUtils {
                         }
                         else -> {
                             month = date / 30 + 10
-                            date = date % 30
+                            date %= 30
                         }
                     }
                     year = miladiYear - 622
@@ -120,7 +120,7 @@ object DateUtils {
                     80
                 }
                 if (date > ld) {
-                    date = date - ld
+                    date -= ld
                     if (date <= 186) {
                         when (date % 31) {
                             0 -> {
@@ -129,12 +129,12 @@ object DateUtils {
                             }
                             else -> {
                                 month = date / 31 + 1
-                                date = date % 31
+                                date %= 31
                             }
                         }
                         year = miladiYear - 621
                     } else {
-                        date = date - 186
+                        date -= 186
                         when (date % 30) {
                             0 -> {
                                 month = date / 30 + 6
@@ -142,13 +142,13 @@ object DateUtils {
                             }
                             else -> {
                                 month = date / 30 + 7
-                                date = date % 30
+                                date %= 30
                             }
                         }
                         year = miladiYear - 621
                     }
                 } else {
-                    date = date + 10
+                    date += 10
                     when (date % 30) {
                         0 -> {
                             month = date / 30 + 9
@@ -156,7 +156,7 @@ object DateUtils {
                         }
                         else -> {
                             month = date / 30 + 10
-                            date = date % 30
+                            date %= 30
                         }
                     }
                     year = miladiYear - 622
@@ -176,7 +176,7 @@ object DateUtils {
                 11 -> strMonth = "بهمن"
                 12 -> strMonth = "اسفند"
             }
-            when (WeekDay) {
+            when (weekDay) {
                 0 -> strWeekDay = "يکشنبه"
                 1 -> strWeekDay = "دوشنبه"
                 2 -> strWeekDay = "سه شنبه"

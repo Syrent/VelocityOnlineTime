@@ -1,13 +1,17 @@
 package ir.sayandevelopment.sayanplaytime;
 
 import com.google.inject.Inject;
+import com.velocitypowered.api.command.CommandMeta;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
+import ir.sayandevelopment.sayanplaytime.controller.DiscordController;
 import ir.sayandevelopment.sayanplaytime.database.MySQL;
 import ir.sayandevelopment.sayanplaytime.database.SQL;
-import ir.syrent.sayanskyblock.storage.Settings;
+import ir.sayandevelopment.sayanplaytime.listener.DisconnectListener;
+import ir.sayandevelopment.sayanplaytime.listener.SeverConnectedListener;
+import ir.sayandevelopment.sayanplaytime.storage.Settings;
 import org.slf4j.Logger;
 
 @Plugin(
@@ -21,7 +25,7 @@ import org.slf4j.Logger;
 public class SayanPlayTime {
 
     public SQL sql;
-//    public DiscordController discordController;
+    public DiscordController discordController;
     public final ProxyServer server;
     public final Logger logger;
 
@@ -34,43 +38,43 @@ public class SayanPlayTime {
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
         initializeMySQL();
-//        discordController = new DiscordController(this);
+        Settings.INSTANCE.load();
+        discordController = new DiscordController(this);
 
         registerListeners();
         registerCommands();
 
-        Settings.INSTANCE.load();
-        Settings.INSTANCE.refresh();
     }
 
     public void initializeMySQL() {
         // TODO: Read data from yaml file
-        String host = "localhost";
-        String database = "root";
-        String user = "root";
-        String pass = "";
-        int port = 3306;
+        String host = Settings.INSTANCE.getHost();
+        String database = Settings.INSTANCE.getDatabase();
+        String username = Settings.INSTANCE.getUsername();
+        String password = Settings.INSTANCE.getPassword();
+        int port = Settings.INSTANCE.getPort();
 
-        sql = new MySQL(this, host, port, database, user, pass);
+        sql = new MySQL(this, host, port, database, username, password);
 
-//        try {
-//            logger.info("Connecting to sql...");
-//            sql.openConnection();
-//            sql.createTable();
-//            logger.info("Connected to sql.");
-//        } catch (Exception e) {
-//            logger.error("Error while connecting to sql. Please send error to plugin developer: " + e.getMessage());
-//            e.printStackTrace();
-//        }
+        try {
+            logger.info("Connecting to sql...");
+            sql.openConnection();
+            sql.createTable();
+            logger.info("Connected to sql.");
+        } catch (Exception e) {
+            logger.error("Error while connecting to sql. Please send error to plugin developer: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public void registerListeners() {
-        server.getEventManager().register(this, new EventListener(this));
+        server.getEventManager().register(this, new SeverConnectedListener(this));
+        server.getEventManager().register(this, new DisconnectListener(this));
     }
 
     public void registerCommands() {
-        /*server.getCommandManager().register("playtime", new PlayTimeCommand(this, discordController));
+        server.getCommandManager().register("playtime", new PlayTimeCommand(this, discordController));
         CommandMeta meta = server.getCommandManager().metaBuilder("playtime").aliases("onlinetime", "pt", "ot").build();
-        server.getCommandManager().register(meta, new PlayTimeCommand(this, discordController));*/
+        server.getCommandManager().register(meta, new PlayTimeCommand(this, discordController));
     }
 }
