@@ -1,9 +1,11 @@
-package ir.sayandevelopment.sayanplaytime.controller
+package ir.syrent.velocityonlinetime.controller
 
-import ir.sayandevelopment.sayanplaytime.*
-import ir.sayandevelopment.sayanplaytime.utils.DateUtils
-import ir.sayandevelopment.sayanplaytime.utils.Utils
-import ir.sayandevelopment.sayanplaytime.storage.Settings
+import ir.syrent.velocityonlinetime.utils.DateUtils
+import ir.syrent.velocityonlinetime.utils.Utils
+import ir.syrent.velocityonlinetime.storage.Settings
+import ir.syrent.velocityonlinetime.OnlinePlayer
+import ir.syrent.velocityonlinetime.OnlineTimeCommand
+import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -15,14 +17,14 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 class DiscordController(
-    private val plugin: SayanPlayTime
+    private val plugin: VelocityOnlineTime
 ): ListenerAdapter() {
 
     var jda: JDA? = null
-    private var playtimeChannel: TextChannel? = null
-    private var staffPlayTimeChannel: TextChannel? = null
-    private var weeklyPlayTimeSent = false
-    private var staffPlayTimeSent = false
+    private var onlinetimeChannel: TextChannel? = null
+    private var staffOnlineTimeChannel: TextChannel? = null
+    private var weeklyOnlineTimeSent = false
+    private var staffOnlineTimeSent = false
     private val miniMessage = MiniMessage.miniMessage()
 
     init {
@@ -43,7 +45,7 @@ class DiscordController(
                         .awaitReady()
                     plugin.logger.info("DiscordJDA is now connected!")
 
-                    initializePlayTimeChannels()
+                    initializeOnlineTimeChannels()
 
                     plugin.server.scheduler.buildTask(this) {
                         plugin.logger.info("Registering Discord event listener...")
@@ -57,35 +59,35 @@ class DiscordController(
         }).delay( /* TODO: Read time from yaml file */3L, TimeUnit.SECONDS).schedule()
     }
 
-    private fun initializePlayTimeChannels() {
+    private fun initializeOnlineTimeChannels() {
         // TODO: Read channel id from config file
-        playtimeChannel = jda?.getTextChannelById(967374851939663893L) ?: throw NullPointerException("JDA is null!")
-        staffPlayTimeChannel = jda?.getTextChannelById(967374872554635275L) ?: throw NullPointerException("JDA is null")
+        onlinetimeChannel = jda?.getTextChannelById(967374851939663893L) ?: throw NullPointerException("JDA is null!")
+        staffOnlineTimeChannel = jda?.getTextChannelById(967374872554635275L) ?: throw NullPointerException("JDA is null")
     }
 
     /**
-     * Checks if the time has passed and sends the playtime message if it has.
+     * Checks if the time has passed and sends the onlinetime message if it has.
      */
     private fun checkTime() {
         plugin.server.scheduler.buildTask(this) {
             val hours = Calendar.getInstance()[Calendar.HOUR_OF_DAY]
             // TODO: Read time from yaml file
             if (hours == 0) {
-                sendWeeklyPlayTime()
-                sendStaffPlayTime()
+                sendWeeklyOnlineTime()
+                sendStaffOnlineTime()
             } else {
-                weeklyPlayTimeSent = false
-                staffPlayTimeSent = false
+                weeklyOnlineTimeSent = false
+                staffOnlineTimeSent = false
             }
         }.repeat(10, TimeUnit.SECONDS).schedule()
     }
 
     /**
-     * Sends the weekly playtime message to the playtime channel and minecraft chat
+     * Sends the weekly onlinetime message to the onlinetime channel and minecraft chat
      * also give the top online player reward.
      */
-    private fun sendWeeklyPlayTime() {
-        if (!weeklyPlayTimeSent) {
+    private fun sendWeeklyOnlineTime() {
+        if (!weeklyOnlineTimeSent) {
             // TODO: Read time from yaml file
             if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == 7) {
                 val username = plugin.sql.getWeeklyTops(1)[0].userName
@@ -97,25 +99,25 @@ class DiscordController(
                     player.sendMessage(
                         miniMessage.deserialize(
                             "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                    " <gradient:#F2E205:#F2A30F>PlayTime</gradient> " +
+                                    " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
                                     "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
                         )
                     )
-                    player.sendMessage(miniMessage.deserialize("${PlayTimeCommand.PREFIX}<bold><color:#F2E205>${username} Be Onvan Top PlayTime Hafte Barande Rank VIP Shod!"))
+                    player.sendMessage(miniMessage.deserialize("${OnlineTimeCommand.PREFIX}<bold><color:#F2E205>${username} Be Onvan Top OnlineTime Hafte Barande Rank VIP Shod!"))
                 }
 
                 sendWinnerMessage()
                 plugin.sql.resetWeekly()
-                weeklyPlayTimeSent = true
+                weeklyOnlineTimeSent = true
             }
         }
     }
 
-    private fun sendStaffPlayTime() {
-        if (!staffPlayTimeSent) {
+    private fun sendStaffOnlineTime() {
+        if (!staffOnlineTimeSent) {
             sendDailyMessage()
             plugin.sql.resetDaily()
-            staffPlayTimeSent = true
+            staffOnlineTimeSent = true
         }
     }
 
@@ -134,7 +136,7 @@ class DiscordController(
         val minutes = (seconds % 3600 / 60).toInt()
 
         val embed = EmbedBuilder()
-        embed.setTitle("\uD83E\uDDED  PlayTime | ${DateUtils.currentShamsidate}", null)
+        embed.setTitle("\uD83E\uDDED  OnlineTime | ${DateUtils.currentShamsidate}", null)
         embed.setColor(Color(0xc1d6f1))
         embed.appendDescription("⏱️ مسابقه بیشترین پلی تایم این هفته سرور به پایان رسید!")
         embed.appendDescription("\n")
@@ -157,22 +159,22 @@ class DiscordController(
                     "\uD83D\uDFE3 QPixel.IR/Discord\n" +
                     "\uD83C\uDF10 wWw.QPixel.IR"
         )
-        embed.setFooter("${Settings.networkName} | PlayTime")
+        embed.setFooter("${Settings.networkName} | OnlineTime")
 
         embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayers[0].userName}/64.png")
-        playtimeChannel?.sendMessageEmbeds(embed.build())
+        onlinetimeChannel?.sendMessageEmbeds(embed.build())
             ?.append("<@&758758796167348285>")
-            ?.queue() ?: throw NullPointerException("Can't send embed message to playtime channel")
+            ?.queue() ?: throw NullPointerException("Can't send embed message to onlinetime channel")
     }
 
     // TODO: Read embed content from config file
     fun sendDailyMessage() {
-        val onlinePlayerList: List<OnlinePlayer> = plugin.sql.dailyPlayTimes
+        val onlinePlayerList: List<OnlinePlayer> = plugin.sql.dailyOnlineTimes
         for (onlinePlayer: OnlinePlayer in onlinePlayerList) {
             val totalTime = onlinePlayer.time
 
             val embed = EmbedBuilder()
-            embed.setTitle("\uD83E\uDDED ${onlinePlayer.userName} Daily PlayTime | ${DateUtils.currentShamsidate}", null)
+            embed.setTitle("\uD83E\uDDED ${onlinePlayer.userName} Daily OnlineTime | ${DateUtils.currentShamsidate}", null)
             embed.setColor(Color(0x2F5FBE))
             embed.appendDescription("Total Time: ${Utils.formatTime(totalTime)}")
             embed.appendDescription("\n")
@@ -180,17 +182,17 @@ class DiscordController(
 
             for (registeredServer in plugin.server.allServers) {
                 val serverName = registeredServer.serverInfo.name
-                val serverOnlineTime: Long = plugin.sql.getDailyPlayTime(onlinePlayer.uuid, serverName)
+                val serverOnlineTime: Long = plugin.sql.getDailyOnlineTime(onlinePlayer.uuid, serverName)
 
                 if (serverOnlineTime > 0) {
                     embed.addField("$serverName: ", Utils.formatTime(serverOnlineTime), true)
                 }
             }
 
-            embed.setFooter("${Settings.networkName} | PlayTime")
+            embed.setFooter("${Settings.networkName} | OnlineTime")
             embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayer.userName}/64.png")
 
-            staffPlayTimeChannel?.sendMessageEmbeds(embed.build())?.queue() ?: throw NullPointerException("Staff playtime channel not found!")
+            staffOnlineTimeChannel?.sendMessageEmbeds(embed.build())?.queue() ?: throw NullPointerException("Staff onlinetime channel not found!")
         }
     }
 }

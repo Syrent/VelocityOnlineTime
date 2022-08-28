@@ -1,10 +1,10 @@
-package ir.sayandevelopment.sayanplaytime.database
+package ir.syrent.velocityonlinetime.database
 
-import ir.sayandevelopment.sayanplaytime.SayanPlayTime
+import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import java.sql.DriverManager
 
 class MySQL(
-    plugin: SayanPlayTime?,
+    plugin: VelocityOnlineTime?,
     private val host: String,
     private val port: Int,
     private val database: String,

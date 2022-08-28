@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime;
+package ir.syrent.velocityonlinetime;
 
 import com.google.inject.Inject;
 import com.velocitypowered.api.command.CommandMeta;
@@ -6,23 +6,23 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
-import ir.sayandevelopment.sayanplaytime.controller.DiscordController;
-import ir.sayandevelopment.sayanplaytime.database.MySQL;
-import ir.sayandevelopment.sayanplaytime.database.SQL;
-import ir.sayandevelopment.sayanplaytime.listener.DisconnectListener;
-import ir.sayandevelopment.sayanplaytime.listener.SeverConnectedListener;
-import ir.sayandevelopment.sayanplaytime.storage.Settings;
+import ir.syrent.velocityonlinetime.controller.DiscordController;
+import ir.syrent.velocityonlinetime.database.MySQL;
+import ir.syrent.velocityonlinetime.database.SQL;
+import ir.syrent.velocityonlinetime.listener.DisconnectListener;
+import ir.syrent.velocityonlinetime.listener.SeverConnectedListener;
+import ir.syrent.velocityonlinetime.storage.Settings;
 import org.slf4j.Logger;
 
 @Plugin(
-        id = "sayanplaytime",
-        name = "SayanPlayTime",
+        id = "velocityonlinetime",
+        name = "VelocityOnlineTime",
         version = BuildConstants.VERSION,
-        description = "Playtime plugin for velocity servers",
-        url = "sayandevelopment.ir",
+        description = "OnlineTime plugin for velocity servers",
+        url = "syrent.ir",
         authors = {"Syrent"}
 )
-public class SayanPlayTime {
+public class VelocityOnlineTime {
 
     public SQL sql;
     public DiscordController discordController;
@@ -30,7 +30,7 @@ public class SayanPlayTime {
     public final Logger logger;
 
     @Inject
-    public SayanPlayTime(ProxyServer server, Logger logger) {
+    public VelocityOnlineTime(ProxyServer server, Logger logger) {
         this.server = server;
         this.logger = logger;
     }
@@ -73,8 +73,8 @@ public class SayanPlayTime {
     }
 
     public void registerCommands() {
-        server.getCommandManager().register("playtime", new PlayTimeCommand(this, discordController));
-        CommandMeta meta = server.getCommandManager().metaBuilder("playtime").aliases("onlinetime", "pt", "ot").build();
-        server.getCommandManager().register(meta, new PlayTimeCommand(this, discordController));
+        server.getCommandManager().register("onlinetime", new OnlineTimeCommand(this, discordController));
+        CommandMeta meta = server.getCommandManager().metaBuilder("onlinetime").aliases("onlinetime", "pt", "ot").build();
+        server.getCommandManager().register(meta, new OnlineTimeCommand(this, discordController));
     }
 }

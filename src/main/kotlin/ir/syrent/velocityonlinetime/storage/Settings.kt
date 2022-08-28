@@ -1,7 +1,7 @@
-package ir.sayandevelopment.sayanplaytime.storage
+package ir.syrent.velocityonlinetime.storage
 
 import com.moandjiezana.toml.Toml
-import ir.sayandevelopment.sayanplaytime.utils.ResourceUtils
+import ir.syrent.velocityonlinetime.utils.ResourceUtils
 import java.io.File
 
 

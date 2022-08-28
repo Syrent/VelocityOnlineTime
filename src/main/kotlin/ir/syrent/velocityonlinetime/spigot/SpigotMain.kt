@@ -1,10 +1,10 @@
-package ir.sayandevelopment.sayanplaytime.spigot
+package ir.syrent.velocityonlinetime.spigot
 
 import org.bukkit.plugin.java.JavaPlugin
-import ir.sayandevelopment.sayanplaytime.database.MySQL
+import ir.syrent.velocityonlinetime.database.MySQL
 import org.bukkit.Bukkit
-import ir.sayandevelopment.sayanplaytime.database.SQL
-import ir.sayandevelopment.sayanplaytime.storage.Settings
+import ir.syrent.velocityonlinetime.database.SQL
+import ir.syrent.velocityonlinetime.storage.Settings
 
 class SpigotMain : JavaPlugin() {
 

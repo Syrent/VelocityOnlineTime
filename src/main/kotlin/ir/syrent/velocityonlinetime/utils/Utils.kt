@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime.utils
+package ir.syrent.velocityonlinetime.utils
 
 object Utils {
     fun capitalize(string: String): String {

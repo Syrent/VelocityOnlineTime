@@ -1,8 +1,8 @@
-name: SayanPlayTime
+name: VelocityOnlineTime
 version: '${version}'
-main: ir.sayandevelopment.sayanplaytime.spigot.SpigotMain
+main: ir.syrent.velocityonlinetime.spigot.SpigotMain
 api-version: 1.13
-prefix: SayanPlayTime
+prefix: VelocityOnlineTime
 authors: [ Syrent ]
-description: SayanPlayTime plugin
+description: VelocityOnlineTime plugin
 website: syrent.ir

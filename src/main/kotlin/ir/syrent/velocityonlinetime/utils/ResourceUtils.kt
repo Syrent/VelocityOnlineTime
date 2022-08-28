@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime.utils
+package ir.syrent.velocityonlinetime.utils
 
 import org.apache.commons.io.IOUtils
 import java.io.File

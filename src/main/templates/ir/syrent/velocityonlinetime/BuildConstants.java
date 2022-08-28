@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime;
+package ir.syrent.velocityonlinetime;
 
 // The constants are replaced before compilation
 public class BuildConstants {

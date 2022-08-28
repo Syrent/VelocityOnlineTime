@@ -10,5 +10,5 @@
 [discord]
     token = "example token"
     [channel]
-        weekly = "top weekly playtime channel"
-        staff = "staff playtime channel id"
+        weekly = "top weekly onlinetime channel"
+        staff = "staff onlinetime channel id"

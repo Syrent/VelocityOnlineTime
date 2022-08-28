@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime.utils
+package ir.syrent.velocityonlinetime.utils
 
 class TextReplacement(
     val from: String,

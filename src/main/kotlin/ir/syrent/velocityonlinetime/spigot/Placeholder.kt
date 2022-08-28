@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime.spigot
+package ir.syrent.velocityonlinetime.spigot
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.OfflinePlayer
@@ -13,7 +13,7 @@ class Placeholder(
     }
 
     override fun getIdentifier(): String {
-        return "playtime"
+        return "onlinetime"
     }
 
     override fun getVersion(): String {
@@ -25,9 +25,9 @@ class Placeholder(
     }
 
     override fun onRequest(player: OfflinePlayer, params: String): String {
-        return if (params.equals("playtime", ignoreCase = true)) {
+        return if (params.equals("onlinetime", ignoreCase = true)) {
             try {
-                val totalTime = plugin.sql?.getPlayerPlayTime(player.uniqueId, "total_time")
+                val totalTime = plugin.sql?.getPlayerOnlineTime(player.uniqueId, "total_time")
                 val seconds = totalTime?.div(1000)
                 val hours = (seconds?.div(3600))?.toInt()
                 val minutes = ((seconds?.rem(3600) ?: 3600) / 60).toInt()

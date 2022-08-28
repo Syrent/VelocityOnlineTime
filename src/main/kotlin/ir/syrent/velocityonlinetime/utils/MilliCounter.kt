@@ -1,4 +1,4 @@
-package ir.sayandevelopment.sayanplaytime.utils
+package ir.syrent.velocityonlinetime.utils
 
 import java.text.DecimalFormat
 import kotlin.math.pow
