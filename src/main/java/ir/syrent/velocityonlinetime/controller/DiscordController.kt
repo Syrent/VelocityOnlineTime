@@ -1,11 +1,11 @@
 package ir.syrent.velocityonlinetime.controller
 
-import ir.syrent.velocityonlinetime.utils.DateUtils
-import ir.syrent.velocityonlinetime.utils.Utils
-import ir.syrent.velocityonlinetime.storage.Settings
 import ir.syrent.velocityonlinetime.OnlinePlayer
 import ir.syrent.velocityonlinetime.OnlineTimeCommand
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
+import ir.syrent.velocityonlinetime.storage.Settings
+import ir.syrent.velocityonlinetime.utils.DateUtils
+import ir.syrent.velocityonlinetime.utils.Utils
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
@@ -21,7 +21,7 @@ class DiscordController(
 ): ListenerAdapter() {
 
     var jda: JDA? = null
-    private var onlinetimeChannel: TextChannel? = null
+    private var weeklyTopChannel: TextChannel? = null
     private var staffOnlineTimeChannel: TextChannel? = null
     private var weeklyOnlineTimeSent = false
     private var staffOnlineTimeSent = false
@@ -34,42 +34,35 @@ class DiscordController(
     private fun connect() {
         var connected = false
 
-        plugin.server.scheduler.buildTask(this, object : Runnable {
-            override fun run() {
-                if (!connected) {
-                    plugin.logger.info("DiscordJDA is not connected! trying to connect...")
-                    // TODO: Read bot token from config file
-                    jda = JDABuilder
-                        .createDefault("ODU1NTk2OTYzNDk5MDgxNzI5.YM0yxA.k01a2PBR68T5v5BZ68LY52aO3R8")
-                        .build()
-                        .awaitReady()
-                    plugin.logger.info("DiscordJDA is now connected!")
+        plugin.server.scheduler.buildTask(plugin) {
+            if (!connected) {
+                plugin.logger.info("DiscordJDA is not connected! trying to connect...")
+                jda = JDABuilder.createDefault(Settings.discordToken).build().awaitReady()
+                plugin.logger.info("DiscordJDA is now connected!")
 
-                    initializeOnlineTimeChannels()
+                initializeOnlineTimeChannels()
 
-                    plugin.server.scheduler.buildTask(this) {
-                        plugin.logger.info("Registering Discord event listener...")
-                        jda?.addEventListener(this) ?: throw NullPointerException("JDA is null!")
-                        plugin.logger.info("Discord event listener successfully registered.")
-                        checkTime()
-                    }.delay(10L, TimeUnit.SECONDS).schedule()
-                    connected = true
-                }
+                plugin.server.scheduler.buildTask(plugin) {
+                    /*plugin.logger.info("Registering Discord event listener...")
+                            jda?.addEventListener(this) ?: throw NullPointerException("JDA is null!")
+                            plugin.logger.info("Discord event listener successfully registered.")*/
+                    checkTime()
+                }.delay(10L, TimeUnit.SECONDS).schedule()
+                connected = true
             }
-        }).delay( /* TODO: Read time from yaml file */3L, TimeUnit.SECONDS).schedule()
+        }.delay( /* TODO: Read time from yaml file */ 3L, TimeUnit.SECONDS).schedule()
     }
 
     private fun initializeOnlineTimeChannels() {
-        // TODO: Read channel id from config file
-        onlinetimeChannel = jda?.getTextChannelById(967374851939663893L) ?: throw NullPointerException("JDA is null!")
-        staffOnlineTimeChannel = jda?.getTextChannelById(967374872554635275L) ?: throw NullPointerException("JDA is null")
+        weeklyTopChannel = jda?.getTextChannelById(Settings.weeklyTopChannel) ?: throw NullPointerException("JDA is null!")
+        staffOnlineTimeChannel = jda?.getTextChannelById(Settings.staffOnlineTimeChannel) ?: throw NullPointerException("JDA is null")
     }
 
     /**
      * Checks if the time has passed and sends the onlinetime message if it has.
      */
     private fun checkTime() {
-        plugin.server.scheduler.buildTask(this) {
+        plugin.server.scheduler.buildTask(plugin) {
             val hours = Calendar.getInstance()[Calendar.HOUR_OF_DAY]
             // TODO: Read time from yaml file
             if (hours == 0) {
@@ -162,7 +155,7 @@ class DiscordController(
         embed.setFooter("${Settings.networkName} | OnlineTime")
 
         embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayers[0].userName}/64.png")
-        onlinetimeChannel?.sendMessageEmbeds(embed.build())
+        weeklyTopChannel?.sendMessageEmbeds(embed.build())
             ?.append("<@&758758796167348285>")
             ?.queue() ?: throw NullPointerException("Can't send embed message to onlinetime channel")
     }

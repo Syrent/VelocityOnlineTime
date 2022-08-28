@@ -1,8 +1,8 @@
 name: VelocityOnlineTime
 version: '${version}'
-main: ir.syrent.velocityonlinetime.spigot.SpigotMain
+main: ir.syrent.velocityonlinetime.spigot.VelocityOnlineTimeSpigot
 api-version: 1.13
 prefix: VelocityOnlineTime
 authors: [ Syrent ]
-description: VelocityOnlineTime plugin
+description: OnlineTime plugin for velocity servers
 website: syrent.ir

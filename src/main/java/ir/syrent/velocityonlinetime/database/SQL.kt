@@ -1,14 +1,11 @@
 package ir.syrent.velocityonlinetime.database
 
-import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import ir.syrent.velocityonlinetime.OnlinePlayer
-import java.lang.Exception
+import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import java.sql.Connection
 import java.util.*
 
-abstract class SQL(
-    private val plugin: VelocityOnlineTime
-) {
+abstract class SQL {
 
     var connection: Connection? = null
 
@@ -24,16 +21,16 @@ abstract class SQL(
     }
 
     private fun createServerColumns() {
-        plugin.server.allServers.forEach { registeredServer ->
+        VelocityOnlineTime.getInstance().server.allServers.forEach { registeredServer ->
             val serverName = registeredServer.serverInfo.name
             
             try {
-                plugin.logger.info("Creating $serverName in the onlinetime database...")
+                VelocityOnlineTime.getInstance().logger.info("Creating $serverName in the onlinetime database...")
                 execute("ALTER TABLE velocityonlinetime_onlinetime ADD COLUMN IF NOT EXISTS $serverName BIGINT;")
                 execute("ALTER TABLE velocityonlinetime_daily ADD COLUMN IF NOT EXISTS $serverName BIGINT;")
             } catch (e: Exception) {
-                plugin.logger.error("Could not create server column in database. Server: $serverName")
-                plugin.logger.error("Error message: ${e.message}")
+                VelocityOnlineTime.getInstance().logger.error("Could not create server column in database. Server: $serverName")
+                VelocityOnlineTime.getInstance().logger.error("Error message: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -58,7 +55,7 @@ abstract class SQL(
     fun updateTotalOnlineTime(uuid: UUID) {
         var totalTime: Long = 0
 
-        for (server in plugin.server.allServers.map { it.serverInfo.name }) {
+        for (server in VelocityOnlineTime.getInstance().server.allServers.map { it.serverInfo.name }) {
             val result = resultExecute("SELECT * FROM velocityonlinetime_onlinetime WHERE uuid='$uuid'", server)
             totalTime += result
         }
@@ -69,7 +66,7 @@ abstract class SQL(
     fun updateDailyTotalOnlineTime(uuid: UUID) {
         var totalTime: Long = 0
 
-        for (serverName in plugin.server.allServers.map { it.serverInfo.name }) {
+        for (serverName in VelocityOnlineTime.getInstance().server.allServers.map { it.serverInfo.name }) {
             val result = resultExecute("SELECT * FROM velocityonlinetime_daily WHERE uuid='$uuid'", serverName)
             totalTime += result
         }

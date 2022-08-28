@@ -24,7 +24,7 @@ class OnlineTimeCommand(
                     val hours = (seconds / 3600).toInt()
                     val minutes = (seconds % 3600 / 60).toInt()
 
-                    player.sendMessage(formatter.deserialize(PREFIX + "<color:#00F3FF>Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                    player.sendMessage(formatter.deserialize("$PREFIX <color:#00F3FF>Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }

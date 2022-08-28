@@ -21,8 +21,8 @@ object Settings {
 
     /* Discord */
     var discordToken: String = ""
-    var weeklyTopChannel: String = ""
-    var staffOnlineTimeChannel: String = ""
+    var weeklyTopChannel: Long = 0
+    var staffOnlineTimeChannel: Long = 0
 
     init {
         load()
@@ -52,8 +52,8 @@ object Settings {
 
         /* Discord */
         discordToken = configuration?.getString("discord.token")!!
-        weeklyTopChannel = configuration?.getString("discord.weekly")!!
-        staffOnlineTimeChannel = configuration?.getString("discord.staff")!!
+        weeklyTopChannel = configuration?.getLong("discord.weekly")!!
+        staffOnlineTimeChannel = configuration?.getLong("discord.staff")!!
     }
 
 }

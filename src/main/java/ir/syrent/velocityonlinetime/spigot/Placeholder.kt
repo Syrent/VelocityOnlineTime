@@ -2,10 +2,9 @@ package ir.syrent.velocityonlinetime.spigot
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.OfflinePlayer
-import java.lang.Exception
 
 class Placeholder(
-    private val plugin: SpigotMain
+    private val plugin: VelocityOnlineTimeSpigot
 ) : PlaceholderExpansion() {
 
     override fun getAuthor(): String {

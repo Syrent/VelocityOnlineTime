@@ -4,7 +4,6 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.ServerConnectedEvent
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import ir.syrent.velocityonlinetime.utils.MilliCounter
-import java.lang.Exception
 import java.util.*
 
 class SeverConnectedListener(
@@ -13,13 +12,13 @@ class SeverConnectedListener(
     private var onlinePlayers: MutableMap<UUID, MilliCounter> = HashMap()
 
     @Subscribe
-    fun onPostLogin(event: ServerConnectedEvent) {
+    fun onServerConnected(event: ServerConnectedEvent) {
         val player = event.player
         try {
-            val registeredServer = event.previousServer
-            if (registeredServer.isPresent) {
+            val previousServer = event.previousServer
+            if (previousServer.isPresent) {
                 val username = player.username
-                val gameMode = registeredServer.get().serverInfo.name
+                val gameMode = previousServer.get().serverInfo.name ?: event.server.serverInfo.name
                 val uuid = player.uniqueId
                 if (onlinePlayers.containsKey(player.uniqueId)) {
                     val milliCounter = onlinePlayers[uuid]

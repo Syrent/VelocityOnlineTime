@@ -24,6 +24,11 @@ import org.slf4j.Logger;
 )
 public class VelocityOnlineTime {
 
+    private static VelocityOnlineTime instance;
+    public static VelocityOnlineTime getInstance() {
+        return instance;
+    }
+
     public SQL sql;
     public DiscordController discordController;
     public final ProxyServer server;
@@ -37,6 +42,7 @@ public class VelocityOnlineTime {
 
     @Subscribe
     public void onProxyInitialization(ProxyInitializeEvent event) {
+        instance = this;
         Settings.INSTANCE.load();
 
         initializeMySQL();
@@ -54,7 +60,7 @@ public class VelocityOnlineTime {
         String password = Settings.INSTANCE.getPassword();
         int port = Settings.INSTANCE.getPort();
 
-        sql = new MySQL(this, host, port, database, username, password);
+        sql = new MySQL(host, port, database, username, password);
 
         try {
             logger.info("Connecting to sql...");

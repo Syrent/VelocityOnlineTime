@@ -1,12 +1,12 @@
 package ir.syrent.velocityonlinetime.spigot
 
-import org.bukkit.plugin.java.JavaPlugin
 import ir.syrent.velocityonlinetime.database.MySQL
-import org.bukkit.Bukkit
 import ir.syrent.velocityonlinetime.database.SQL
 import ir.syrent.velocityonlinetime.storage.Settings
+import org.bukkit.Bukkit
+import org.bukkit.plugin.java.JavaPlugin
 
-class SpigotMain : JavaPlugin() {
+class VelocityOnlineTimeSpigot : JavaPlugin() {
 
     var sql: SQL? = null
 
@@ -16,14 +16,7 @@ class SpigotMain : JavaPlugin() {
         val username = Settings.username
         val password = Settings.password
         val port = Settings.port
-        sql = MySQL(
-            null,
-            host,
-            port,
-            database,
-            username,
-            password
-        )
+        sql = MySQL(host, port, database, username, password)
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
             Placeholder(this).register()
         }
