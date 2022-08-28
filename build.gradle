@@ -75,8 +75,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-//    destinationDirectory = file("$rootDir/bin/")
-    destinationDirectory = file("F:\\Server-Velocity\\plugins")
+    destinationDirectory = file("$rootDir/bin/")
 }
 
 clean.doLast {
