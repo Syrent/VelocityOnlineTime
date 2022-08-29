@@ -14,39 +14,44 @@ class SeverConnectedListener(
     @Subscribe
     fun onServerConnected(event: ServerConnectedEvent) {
         val player = event.player
-        try {
-            val previousServer = event.previousServer
-            if (previousServer.isPresent) {
-                val username = player.username
-                val gameMode = previousServer.get().serverInfo.name ?: event.server.serverInfo.name
-                val uuid = player.uniqueId
-                if (onlinePlayers.containsKey(player.uniqueId)) {
-                    val milliCounter = onlinePlayers[uuid]
-                    milliCounter!!.stop()
-                    val databaseOnlineTime: Float = plugin.sql.getPlayerOnlineTime(uuid, gameMode).toFloat()
-                    val finalOnlineTime = milliCounter.get() + databaseOnlineTime
-                    plugin.sql.updateServerOnlineTime(uuid, username, finalOnlineTime, gameMode)
-                    val weeklyOnlineTime: Float = plugin.sql.getWeeklyOnlineTime(uuid).toFloat()
-                    val finalWeeklyOnlineTime = milliCounter.get() + weeklyOnlineTime
-                    plugin.sql.updateWeeklyOnlineTime(uuid, username, finalWeeklyOnlineTime)
-                    plugin.sql.updateTotalOnlineTime(uuid)
-                    if (player.hasPermission("velocityonlinetime.staff.daily")) {
-                        val databaseDailyOnlineTime: Float = plugin.sql.getDailyOnlineTime(uuid, gameMode).toFloat()
-                        var finalDailyOnlineTime = milliCounter.get() + databaseDailyOnlineTime
-                        plugin.sql.updateDailyServerOnlineTime(uuid, username, finalDailyOnlineTime, gameMode)
-                        val dailyOnlineTime: Float = plugin.sql.getDailyOnlineTime(uuid).toFloat()
-                        finalDailyOnlineTime = milliCounter.get() + dailyOnlineTime
-                        plugin.sql.updateDailyOnlineTime(uuid, username, finalDailyOnlineTime)
-                        plugin.sql.updateDailyTotalOnlineTime(uuid)
-                    }
-                    onlinePlayers.remove(uuid)
+        val previousServer = event.previousServer
+
+        if (previousServer.isPresent) {
+            val username = player.username
+            val gameMode = previousServer.get().serverInfo.name ?: event.server.serverInfo.name
+            val uuid = player.uniqueId
+
+            if (onlinePlayers.containsKey(player.uniqueId)) {
+                val milliCounter = onlinePlayers[uuid]
+                milliCounter!!
+                milliCounter.stop()
+
+                val currentOnlineTime = plugin.mySQL.getPlayerOnlineTime(uuid, gameMode).toFloat()
+                val newOnlineTime = milliCounter.get() + currentOnlineTime
+                val currentWeeklyOnlineTime = plugin.mySQL.getWeeklyOnlineTime(uuid).toFloat()
+                val newWeeklyOnlineTime = milliCounter.get() + currentWeeklyOnlineTime
+
+                plugin.mySQL.updateServerOnlineTime(uuid, username, newOnlineTime, gameMode)
+                plugin.mySQL.updateWeeklyOnlineTime(uuid, username, newWeeklyOnlineTime)
+                plugin.mySQL.updateTotalOnlineTime(uuid)
+
+                if (player.hasPermission("velocityonlinetime.staff.daily")) {
+                    val databaseDailyOnlineTime = plugin.mySQL.getDailyOnlineTime(uuid, gameMode).toFloat()
+                    var finalDailyOnlineTime = milliCounter.get() + databaseDailyOnlineTime
+                    val dailyOnlineTime = plugin.mySQL.getDailyOnlineTime(uuid).toFloat()
+
+                    plugin.mySQL.updateDailyServerOnlineTime(uuid, username, finalDailyOnlineTime, gameMode)
+                    finalDailyOnlineTime = milliCounter.get() + dailyOnlineTime
+                    plugin.mySQL.updateDailyOnlineTime(uuid, username, finalDailyOnlineTime)
+                    plugin.mySQL.updateDailyTotalOnlineTime(uuid)
                 }
+
+                onlinePlayers.remove(uuid)
             }
-            val milliCounter = MilliCounter()
-            milliCounter.start()
-            onlinePlayers[player.uniqueId] = milliCounter
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
+
+        val milliCounter = MilliCounter()
+        milliCounter.start()
+        onlinePlayers[player.uniqueId] = milliCounter
     }
 }

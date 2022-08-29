@@ -1,7 +1,6 @@
 package ir.syrent.velocityonlinetime.controller
 
 import ir.syrent.velocityonlinetime.OnlinePlayer
-import ir.syrent.velocityonlinetime.OnlineTimeCommand
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import ir.syrent.velocityonlinetime.storage.Settings
 import ir.syrent.velocityonlinetime.utils.DateUtils
@@ -66,8 +65,12 @@ class DiscordController(
             val hours = Calendar.getInstance()[Calendar.HOUR_OF_DAY]
             // TODO: Read time from yaml file
             if (hours == 0) {
-                sendWeeklyOnlineTime()
-                sendStaffOnlineTime()
+                if (Settings.weeklyTopEnabled) {
+                    sendWeeklyOnlineTime()
+                }
+                if (Settings.staffOnlineTimeEnabled) {
+                    sendStaffOnlineTime()
+                }
             } else {
                 weeklyOnlineTimeSent = false
                 staffOnlineTimeSent = false
@@ -83,24 +86,27 @@ class DiscordController(
         if (!weeklyOnlineTimeSent) {
             // TODO: Read time from yaml file
             if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == 7) {
-                val username = plugin.sql.getWeeklyTops(1)[0].userName
+                val username = plugin.mySQL.getWeeklyTops(1)[0].userName
 
-                giveReward(username)
+                if (Settings.weeklyTopGiveReward) {
+                    giveReward(username)
+                }
 
                 // TODO: Read message from yaml file
-                plugin.server.allPlayers.forEach { player ->
-                    player.sendMessage(
-                        miniMessage.deserialize(
-                            "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                    " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
-                                    "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
-                        )
-                    )
-                    player.sendMessage(miniMessage.deserialize("${OnlineTimeCommand.PREFIX}<bold><color:#F2E205>${username} Be Onvan Top OnlineTime Hafte Barande Rank VIP Shod!"))
+                if (Settings.weeklyServerAnnouncementEnabled) {
+                    plugin.server.allPlayers.forEach { player ->
+                        for (line in Settings.weeklyServerAnnouncementContent) {
+                            player.sendMessage(miniMessage.deserialize(
+                                line
+                                    .replace("\$prefix", Settings.prefix)
+                                    .replace("\$username", username)
+                            ))
+                        }
+                    }
                 }
 
                 sendWinnerMessage()
-                plugin.sql.resetWeekly()
+                plugin.mySQL.resetWeekly()
                 weeklyOnlineTimeSent = true
             }
         }
@@ -109,20 +115,22 @@ class DiscordController(
     private fun sendStaffOnlineTime() {
         if (!staffOnlineTimeSent) {
             sendDailyMessage()
-            plugin.sql.resetDaily()
+            plugin.mySQL.resetDaily()
             staffOnlineTimeSent = true
         }
     }
 
     private fun giveReward(username: String) {
-        // TODO: Read reward command from yaml file
-        plugin.server.commandManager.executeAsync(plugin.server.consoleCommandSource, String.format("lpv user %s parent addtemp baron 7d", username))
+        for (reward in Settings.weeklyTopRewards) {
+            plugin.server.commandManager.executeAsync(plugin.server.consoleCommandSource, reward.replace("\$username", username))
+        }
+
         plugin.logger.info("$username won weekly reward!")
     }
 
     // TODO: Read embed content from config file
     private fun sendWinnerMessage() {
-        val onlinePlayers: List<OnlinePlayer> = plugin.sql.getWeeklyTops(3)
+        val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getWeeklyTops(3)
         val totalTime = onlinePlayers[0].time
         val seconds = totalTime / 1000
         val hours = (seconds / 3600).toInt()
@@ -162,7 +170,7 @@ class DiscordController(
 
     // TODO: Read embed content from config file
     fun sendDailyMessage() {
-        val onlinePlayerList: List<OnlinePlayer> = plugin.sql.dailyOnlineTimes
+        val onlinePlayerList: List<OnlinePlayer> = plugin.mySQL.dailyOnlineTimes
         for (onlinePlayer: OnlinePlayer in onlinePlayerList) {
             val totalTime = onlinePlayer.time
 
@@ -175,7 +183,7 @@ class DiscordController(
 
             for (registeredServer in plugin.server.allServers) {
                 val serverName = registeredServer.serverInfo.name
-                val serverOnlineTime: Long = plugin.sql.getDailyOnlineTime(onlinePlayer.uuid, serverName)
+                val serverOnlineTime: Long = plugin.mySQL.getDailyOnlineTime(onlinePlayer.uuid, serverName)
 
                 if (serverOnlineTime > 0) {
                     embed.addField("$serverName: ", Utils.formatTime(serverOnlineTime), true)

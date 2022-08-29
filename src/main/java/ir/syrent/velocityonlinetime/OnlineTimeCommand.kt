@@ -3,6 +3,7 @@ package ir.syrent.velocityonlinetime
 import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import ir.syrent.velocityonlinetime.controller.DiscordController
+import ir.syrent.velocityonlinetime.storage.Settings
 import ir.syrent.velocityonlinetime.utils.Utils
 import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.*
@@ -19,12 +20,12 @@ class OnlineTimeCommand(
         if (args.isEmpty()) {
             plugin.server.scheduler.buildTask(plugin) {
                 try {
-                    val totalTime: Long = plugin.sql.getPlayerOnlineTime(player.uniqueId, "total_time")
+                    val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(player.uniqueId, "total_time")
                     val seconds = totalTime / 1000
                     val hours = (seconds / 3600).toInt()
                     val minutes = (seconds % 3600 / 60).toInt()
 
-                    player.sendMessage(formatter.deserialize("$PREFIX <color:#00F3FF>Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                    player.sendMessage(formatter.deserialize("${Settings.prefix} <color:#00F3FF>Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                 } catch (ex: Exception) {
                     ex.printStackTrace()
                 }
@@ -35,15 +36,15 @@ class OnlineTimeCommand(
                     val userName = args[1]
                     plugin.server.scheduler.buildTask(plugin) {
                         try {
-                            val totalTime: Long = plugin.sql.getPlayerOnlineTime(userName, "total_time")
+                            val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(userName, "total_time")
                             if (totalTime == 0L) {
-                                player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>Player not found!"))
+                                player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>Player not found!"))
                                 return@buildTask
                             }
                             val seconds = totalTime / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>$userName<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>$userName<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         } catch (ex: Exception) {
                             ex.printStackTrace()
                         }
@@ -54,15 +55,15 @@ class OnlineTimeCommand(
                     plugin.server.scheduler.buildTask(plugin) {
                         try {
                             val totalTime: Long =
-                                plugin.sql.getPlayerOnlineTime(userName, args[2].lowercase(Locale.getDefault()))
+                                plugin.mySQL.getPlayerOnlineTime(userName, args[2].lowercase(Locale.getDefault()))
                             if (totalTime == 0L) {
-                                player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>Player onlinetime is empty on <color:#C1D6F1>${Utils.capitalize(args[2])}</color>!"))
+                                player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>Player onlinetime is empty on <color:#C1D6F1>${Utils.capitalize(args[2])}</color>!"))
                                 return@buildTask
                             }
                             val seconds = totalTime / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>$userName</color><color:#00F3FF>'s onlinetime in <color:#C1D6F1>${Utils.capitalize(args[2])}</color>:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>$userName</color><color:#00F3FF>'s onlinetime in <color:#C1D6F1>${Utils.capitalize(args[2])}</color>:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         } catch (ex: Exception) {
                             ex.printStackTrace()
                         }
@@ -72,7 +73,7 @@ class OnlineTimeCommand(
                 if (args.size == 2) {
                     if (args[1].equals("week", ignoreCase = true) || args[1].equals("weekly", ignoreCase = true)) {
                         try {
-                            val onlinePlayers: List<OnlinePlayer> = plugin.sql.getWeeklyTops(5)
+                            val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getWeeklyTops(5)
                             player.sendMessage(
                                 formatter.deserialize(
                                     "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
@@ -93,7 +94,7 @@ class OnlineTimeCommand(
                 }
                 plugin.server.scheduler.buildTask(plugin) {
                     try {
-                        val onlinePlayers: List<OnlinePlayer> = plugin.sql.getTopOnlineTimes(5)
+                        val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getTopOnlineTimes(5)
                         player.sendMessage(
                             formatter.deserialize(
                                 "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
@@ -121,10 +122,10 @@ class OnlineTimeCommand(
                             )
                         )
                         for (i in 0..4) {
-                            val seconds: Long = plugin.sql.getWeeklyOnlineTime(player.uniqueId) / 1000
+                            val seconds: Long = plugin.mySQL.getWeeklyOnlineTime(player.uniqueId) / 1000
                             val hours = (seconds / 3600).toInt()
                             val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>${player.username}<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>${player.username}<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                         }
                     } catch (ignored: Exception) {
                     }
@@ -137,7 +138,7 @@ class OnlineTimeCommand(
                         try {
                             discordController.sendDailyMessage()
                             try {
-                                plugin.sql.resetDaily()
+                                plugin.mySQL.resetDaily()
                             } catch (e: Exception) {
                                 e.printStackTrace()
                             }
@@ -165,19 +166,19 @@ class OnlineTimeCommand(
             } else {
                 plugin.server.scheduler.buildTask(plugin) {
                     try {
-                        val totalTime: Long = plugin.sql.getPlayerOnlineTime(
+                        val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(
                             player.uniqueId, args[0].lowercase(
                                 Locale.getDefault()
                             )
                         )
                         if (totalTime == 0L) {
-                            player.sendMessage(formatter.deserialize("$PREFIX<color:#D72D32>You don't have any data in <color:#C1D6F1>${Utils.capitalize(args[0])}</color>!"))
+                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>You don't have any data in <color:#C1D6F1>${Utils.capitalize(args[0])}</color>!"))
                             return@buildTask
                         }
                         val seconds = totalTime / 1000
                         val hours = (seconds / 3600).toInt()
                         val minutes = (seconds % 3600 / 60).toInt()
-                        player.sendMessage(formatter.deserialize("$PREFIX<color:#C1D6F1>${Utils.capitalize(args[0])}</color><color:#00F3FF> onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                        player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>${Utils.capitalize(args[0])}</color><color:#00F3FF> onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
                     } catch (ex: Exception) {
                         ex.printStackTrace()
                     }
@@ -281,9 +282,5 @@ class OnlineTimeCommand(
         }
         listCompletableFuture.complete(list)
         return listCompletableFuture
-    }
-
-    companion object {
-        const val PREFIX = "<gradient:#F2E205:#F2A30F>OnlineTime</gradient> <color:#555197>| "
     }
 }

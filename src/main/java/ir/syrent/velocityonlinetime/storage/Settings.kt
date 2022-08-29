@@ -20,13 +20,18 @@ object Settings {
     var password: String = ""
 
     /* Discord */
+    var weeklyTopEnabled: Boolean = false
+    var weeklyTopGiveReward: Boolean = false
+    var weeklyTopRewards: List<String> = listOf()
+    var weeklyServerAnnouncementEnabled: Boolean = false
+    var weeklyServerAnnouncementContent: List<String> = listOf()
+    var staffOnlineTimeEnabled: Boolean = false
     var discordToken: String = ""
     var weeklyTopChannel: Long = 0
     var staffOnlineTimeChannel: Long = 0
 
-    init {
-        load()
-    }
+    /* Messages */
+    var prefix: String = "OnlineTime » "
 
     fun load() {
         var configurationFile = File("plugins/VelocityOnlineTime/configuration.toml")
@@ -45,15 +50,24 @@ object Settings {
 
         /* Database */
         host = configuration?.getString("database.host", "localhost")!!
-        port = configuration?.getLong("database.port", 3306)?.toInt() ?: 3306
+        port = configuration?.getLong("database.port", 3306)?.toInt()!!
         username = configuration?.getString("database.user")!!
         database = configuration?.getString("database.database")!!
         password = configuration?.getString("database.password")!!
 
         /* Discord */
+        weeklyTopEnabled = configuration?.getBoolean("discord.weekly.enabled", false)!!
+        weeklyTopGiveReward = configuration?.getBoolean("discord.weekly.give_reward", false)!!
+        weeklyTopRewards = configuration?.getList("discord.weekly.rewards", listOf())!!
+        weeklyServerAnnouncementEnabled = configuration?.getBoolean("discord.weekly.server_announcement.enabled", false)!!
+        weeklyServerAnnouncementContent = configuration?.getList("discord.weekly.server_announcement.content", listOf())!!
+        staffOnlineTimeEnabled = configuration?.getBoolean("discord.staff.enabled", false)!!
         discordToken = configuration?.getString("discord.token")!!
-        weeklyTopChannel = configuration?.getLong("discord.weekly")!!
-        staffOnlineTimeChannel = configuration?.getLong("discord.staff")!!
+        weeklyTopChannel = configuration?.getLong("discord.weekly.channel_id")!!
+        staffOnlineTimeChannel = configuration?.getLong("discord.staff.channel_id")!!
+
+        /* Messages */
+        prefix = configuration?.getString("messages.prefix")!!
     }
 
 }

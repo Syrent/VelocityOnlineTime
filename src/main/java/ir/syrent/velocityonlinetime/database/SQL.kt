@@ -5,6 +5,9 @@ import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import java.sql.Connection
 import java.util.*
 
+/**
+ * Because of similarities in the database queries between MySQL and SQLite, this class is used to abstract the database queries.
+ */
 abstract class SQL {
 
     var connection: Connection? = null

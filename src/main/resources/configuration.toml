@@ -1,5 +1,5 @@
 [general]
-    [network]
+    [general.network]
         name = "Example Network"
 [database]
     host = "localhost"
@@ -9,5 +9,23 @@
     password = "password"
 [discord]
     token = "example token"
-    weekly = 0
-    staff = 0
+    [discord.weekly]
+        enabled = false
+        channel_id = 0
+        give_reward = false
+        rewards = [
+            "lpv user $username parent addtemp vip 7d"
+        ]
+        [discord.weekly.server_announcement]
+            enabled = false
+            content = [
+                "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>",
+                " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> ",
+                "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>",
+                "$prefix<bold><color:#F2E205>$username Won weekly playtime reward!"
+            ]
+    [discord.staff]
+        enabled = false
+        channel_id = 0
+[messages]
+    prefix = "<gradient:#F2E205:#F2A30F>OnlineTime</gradient> <color:#555197>| "
