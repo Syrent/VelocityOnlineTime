@@ -24,19 +24,32 @@ repositories {
     }
 
     maven {
+        name = "placeholderapi"
         url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+
+    maven {
+        url = uri("https://maven.pkg.github.com/mohamad82bz/ruom")
+        credentials {
+            username = project.findProperty("gpr.user")
+            password = project.findProperty("gpr.key")
+        }
     }
 }
 
 dependencies {
-    implementation 'net.kyori:adventure-text-minimessage:4.11.0'
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
+    implementation 'me.mohamad82:ruom-velocity:4.2.9'
+    implementation 'me.mohamad82:ruom-bukkit:4.9.1'
+    implementation 'me.mohamad82:ruom-core:4.1.0'
     implementation 'commons-io:commons-io:2.6'
+
     compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
     compileOnly 'com.velocitypowered:velocity-api:3.1.1'
     compileOnly 'me.clip:placeholderapi:2.11.2'
-    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.4'
+    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.18'
     compileOnly files('libs/DBConnector-Velocity-1.0-all.jar')
+
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.1'
 }
 
@@ -50,6 +63,8 @@ processResources {
 }
 
 shadowJar {
+    minimize()
+    relocate('me.mohamad82.ruom', 'me.sayandevelopment.sayanskyblock.ruom')
     archiveFileName = findProperty("plugin-name") + " v" + findProperty("version") + ".jar"
 }
 

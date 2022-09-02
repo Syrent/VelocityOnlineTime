@@ -3,13 +3,19 @@ package ir.syrent.velocityonlinetime.listener
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.ServerConnectedEvent
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
+import ir.syrent.velocityonlinetime.storage.Database
 import ir.syrent.velocityonlinetime.utils.MilliCounter
+import me.mohamad82.ruom.VRuom
 import java.util.*
 
 class SeverConnectedListener(
     private val plugin: VelocityOnlineTime
 ) {
     private var onlinePlayers: MutableMap<UUID, MilliCounter> = HashMap()
+
+    init {
+        VRuom.registerListener(this)
+    }
 
     @Subscribe
     fun onServerConnected(event: ServerConnectedEvent) {
@@ -18,7 +24,7 @@ class SeverConnectedListener(
 
         if (previousServer.isPresent) {
             val username = player.username
-            val gameMode = previousServer.get().serverInfo.name ?: event.server.serverInfo.name
+            val serverName = previousServer.get().serverInfo.name ?: event.server.serverInfo.name
             val uuid = player.uniqueId
 
             if (onlinePlayers.containsKey(player.uniqueId)) {
@@ -26,27 +32,39 @@ class SeverConnectedListener(
                 milliCounter!!
                 milliCounter.stop()
 
-                val currentOnlineTime = plugin.mySQL.getPlayerOnlineTime(uuid, gameMode).toFloat()
-                val newOnlineTime = milliCounter.get() + currentOnlineTime
-                val currentWeeklyOnlineTime = plugin.mySQL.getWeeklyOnlineTime(uuid).toFloat()
-                val newWeeklyOnlineTime = milliCounter.get() + currentWeeklyOnlineTime
+                Database.getPlayerOnlineTime(uuid, serverName).whenComplete { currentOnlineTime, _ ->
+                    val newOnlineTime = milliCounter.get() + currentOnlineTime
 
-                plugin.mySQL.updateServerOnlineTime(uuid, username, newOnlineTime, gameMode)
-                plugin.mySQL.updateWeeklyOnlineTime(uuid, username, newWeeklyOnlineTime)
-                plugin.mySQL.updateTotalOnlineTime(uuid)
+                    Database.getWeeklyOnlineTime(uuid).whenComplete { currentWeeklyOnlineTime, _ ->
+                        val newWeeklyOnlineTime = milliCounter.get() + currentWeeklyOnlineTime
 
-                if (player.hasPermission("velocityonlinetime.staff.daily")) {
-                    val databaseDailyOnlineTime = plugin.mySQL.getDailyOnlineTime(uuid, gameMode).toFloat()
-                    var finalDailyOnlineTime = milliCounter.get() + databaseDailyOnlineTime
-                    val dailyOnlineTime = plugin.mySQL.getDailyOnlineTime(uuid).toFloat()
+                        Database.updateServerOnlineTime(uuid, username, newOnlineTime, serverName).whenComplete { _, _ ->
+                            Database.updateWeeklyOnlineTime(uuid, username, newWeeklyOnlineTime).whenComplete { _, _ ->
+                                Database.updateOnlineTime(uuid).whenComplete { _, _ ->
+                                    if (player.hasPermission("velocityonlinetime.staff.daily")) {
+                                        Database.getDailyOnlineTime(uuid).whenComplete { databaseDailyOnlineTime, _ ->
+                                            var finalDailyOnlineTime = milliCounter.get() + databaseDailyOnlineTime
 
-                    plugin.mySQL.updateDailyServerOnlineTime(uuid, username, finalDailyOnlineTime, gameMode)
-                    finalDailyOnlineTime = milliCounter.get() + dailyOnlineTime
-                    plugin.mySQL.updateDailyOnlineTime(uuid, username, finalDailyOnlineTime)
-                    plugin.mySQL.updateDailyTotalOnlineTime(uuid)
+                                            Database.getDailyOnlineTime(uuid).whenComplete { dailyOnlineTime, _ ->
+                                                Database.updateDailyServerOnlineTime(uuid, username, finalDailyOnlineTime, serverName).whenComplete { _, _ ->
+                                                    finalDailyOnlineTime = milliCounter.get() + dailyOnlineTime
+
+                                                    Database.updateDailyOnlineTime(uuid, username, finalDailyOnlineTime).whenComplete { _, _ ->
+                                                        Database.updateDailyTotalOnlineTime(uuid)
+                                                    }
+                                                }
+
+                                            }
+                                        }
+                                    }
+
+                                    onlinePlayers.remove(uuid)
+                                }
+                            }
+                        }
+                    }
                 }
 
-                onlinePlayers.remove(uuid)
             }
         }
 

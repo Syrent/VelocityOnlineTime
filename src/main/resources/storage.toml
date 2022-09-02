@@ -1,0 +1,9 @@
+type = "sqlite"
+[mysql]
+    address = "localhost"
+    port = 3306
+    database = "velocityonlinetime"
+    ssl = false
+    username = "root"
+    password = ""
+    pooling_size = 3

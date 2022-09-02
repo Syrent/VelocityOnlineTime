@@ -3,8 +3,14 @@ package ir.syrent.velocityonlinetime
 import com.velocitypowered.api.command.SimpleCommand
 import com.velocitypowered.api.proxy.Player
 import ir.syrent.velocityonlinetime.controller.DiscordController
+import ir.syrent.velocityonlinetime.storage.Database
+import ir.syrent.velocityonlinetime.storage.Message
 import ir.syrent.velocityonlinetime.storage.Settings
-import ir.syrent.velocityonlinetime.utils.Utils
+import ir.syrent.velocityonlinetime.utils.TextReplacement
+import ir.syrent.velocityonlinetime.utils.Utils.format
+import ir.syrent.velocityonlinetime.utils.Utils.toComponent
+import me.mohamad82.ruom.VRuom
+import me.mohamad82.ruom.string.StringUtils
 import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.*
 import java.util.concurrent.CompletableFuture
@@ -13,176 +19,104 @@ class OnlineTimeCommand(
     private val plugin: VelocityOnlineTime,
     private val discordController: DiscordController
 ) : SimpleCommand {
+    init {
+        VRuom.registerCommand(
+            "onlinetime",
+            listOf("onlinetime", "pt", "ot", "playtime"),
+            this
+        )
+    }
+
     override fun execute(invocation: SimpleCommand.Invocation) {
         val player = invocation.source() as Player
         val args = invocation.arguments()
         val formatter = MiniMessage.miniMessage()
-        if (args.isEmpty()) {
-            plugin.server.scheduler.buildTask(plugin) {
-                try {
-                    val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(player.uniqueId, "total_time")
-                    val seconds = totalTime / 1000
-                    val hours = (seconds / 3600).toInt()
-                    val minutes = (seconds % 3600 / 60).toInt()
 
-                    player.sendMessage(formatter.deserialize("${Settings.prefix} <color:#00F3FF>Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                } catch (ex: Exception) {
-                    ex.printStackTrace()
-                }
-            }.schedule()
+        if (args.isEmpty()) {
+            Database.getPlayerOnlineTime(player.uniqueId).whenComplete { time, _ ->
+                player.sendMessage(Settings.formatMessage(Message.ONLINETIME_USE, TextReplacement("time", time.format())).toComponent())
+            }
         } else {
-            if (args[0].equals("get", ignoreCase = true)) {
+            if (args[0].equals("get", true)) {
                 if (args.size == 2) {
                     val userName = args[1]
-                    plugin.server.scheduler.buildTask(plugin) {
-                        try {
-                            val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(userName, "total_time")
-                            if (totalTime == 0L) {
-                                player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>Player not found!"))
-                                return@buildTask
-                            }
-                            val seconds = totalTime / 1000
-                            val hours = (seconds / 3600).toInt()
-                            val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>$userName<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
+
+                    Database.getPlayerOnlineTime(userName).whenComplete { time, _ ->
+                        if (time < 1) {
+                            player.sendMessage(Settings.formatMessage(Message.PLAYER_NOT_FOUND).toComponent())
+                            return@whenComplete
                         }
-                    }.schedule()
+
+                        player.sendMessage(Settings.formatMessage(Message.ONLINETIME_GET_USE, TextReplacement("time", time.format()), TextReplacement("player", userName)).toComponent())
+                    }
                 }
                 if (args.size == 3) {
                     val userName = args[1]
-                    plugin.server.scheduler.buildTask(plugin) {
-                        try {
-                            val totalTime: Long =
-                                plugin.mySQL.getPlayerOnlineTime(userName, args[2].lowercase(Locale.getDefault()))
-                            if (totalTime == 0L) {
-                                player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>Player onlinetime is empty on <color:#C1D6F1>${Utils.capitalize(args[2])}</color>!"))
-                                return@buildTask
-                            }
-                            val seconds = totalTime / 1000
-                            val hours = (seconds / 3600).toInt()
-                            val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>$userName</color><color:#00F3FF>'s onlinetime in <color:#C1D6F1>${Utils.capitalize(args[2])}</color>:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
+
+                    Database.getPlayerOnlineTime(userName, args[2].lowercase()).whenComplete { time, _ ->
+                        if (time < 1) {
+                            player.sendMessage(Settings.formatMessage(Message.PLAYER_NOT_FOUND_SERVER, TextReplacement("server", StringUtils.capitalize(args[2]))).toComponent())
+                            return@whenComplete
                         }
-                    }.schedule()
+
+                        player.sendMessage(Settings.formatMessage(Message.ONLINETIME_GET_SERVER_USE, TextReplacement("time", time.format()), TextReplacement("player", userName), TextReplacement("server", StringUtils.capitalize(args[2]))).toComponent())
+                    }
                 }
-            } else if (args[0].equals("top", ignoreCase = true)) {
+            } else if (args[0].equals("top", true)) {
                 if (args.size == 2) {
                     if (args[1].equals("week", ignoreCase = true) || args[1].equals("weekly", ignoreCase = true)) {
-                        try {
-                            val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getWeeklyTops(5)
-                            player.sendMessage(
-                                formatter.deserialize(
-                                    "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                            " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
-                                            "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
-                                )
-                            )
-                            for (i in 0..4) {
-                                val seconds = onlinePlayers[i].time / 1000
-                                val hours = (seconds / 3600).toInt()
-                                val minutes = (seconds % 3600 / 60).toInt()
-                                player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m"))
+                        Database.getWeeklyTops(5).whenComplete { onlinePlayers, _ ->
+                            player.sendMessage(Settings.formatMessage(Message.HEADER).toComponent())
+
+                            for ((index, onlinePlayer) in onlinePlayers.withIndex()) {
+                                player.sendMessage(Settings.formatMessage(Message.ONLINETIME_TOP_WEEK_USE, TextReplacement("position", (index + 1).toString()), TextReplacement("player", onlinePlayer.userName), TextReplacement("time", onlinePlayer.time.format())).toComponent())
                             }
-                        } catch (ignored: Exception) {
                         }
+
                         return
                     }
                 }
-                plugin.server.scheduler.buildTask(plugin) {
-                    try {
-                        val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getTopOnlineTimes(5)
-                        player.sendMessage(
-                            formatter.deserialize(
-                                "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                        " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
-                                        "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
-                            )
-                        )
-                        for (i in 0..4) {
-                            val seconds = onlinePlayers[i].time / 1000
-                            val hours = (seconds / 3600).toInt()
-                            val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("<color:#EE9900>[<color:#F9BD03>${i + 1}<color:#EE9900>] <color:#C1D6F1>${onlinePlayers[i].userName}</color><color:#00F3FF> | </color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                        }
-                    } catch (ignored: Exception) {
+
+                Database.getTopOnlineTimes(5).whenComplete { onlinePlayers, _ ->
+                    player.sendMessage(Settings.formatMessage(Message.HEADER).toComponent())
+
+                    for ((index, onlinePlayer) in onlinePlayers.withIndex()) {
+                        player.sendMessage(Settings.formatMessage(Message.ONLINETIME_TOP_USE, TextReplacement("position", (index + 1).toString()), TextReplacement("player", onlinePlayer.userName), TextReplacement("time", onlinePlayer.time.format())).toComponent())
                     }
-                }.schedule()
-            } else if (args[0].equals("weekly", ignoreCase = true)) {
-                plugin.server.scheduler.buildTask(plugin) {
-                    try {
-                        player.sendMessage(
-                            formatter.deserialize(
-                                "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                        " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
-                                        "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
-                            )
-                        )
-                        for (i in 0..4) {
-                            val seconds: Long = plugin.mySQL.getWeeklyOnlineTime(player.uniqueId) / 1000
-                            val hours = (seconds / 3600).toInt()
-                            val minutes = (seconds % 3600 / 60).toInt()
-                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>${player.username}<color:#00F3FF>'s Total onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                        }
-                    } catch (ignored: Exception) {
-                    }
-                }.schedule()
+                }
+            } else if (args[0].equals("week", true) || args[0].equals("weekly",  true)) {
+                Database.getWeeklyOnlineTime(player.uniqueId).whenComplete { time, _ ->
+                    player.sendMessage(Settings.formatMessage(Message.HEADER).toComponent())
+                    player.sendMessage(Settings.formatMessage(Message.ONLINETIME_WEEK_USE, TextReplacement("time", time.format())).toComponent())
+                }
             } else if (args[0].equals("debug", ignoreCase = true)) {
-                /*if (!player.hasPermission("velocityonlinetime.admin"))
-                   return;*/
+                if (!player.hasPermission("velocityonlinetime.admin")) return
+
                 if (args.size == 2) {
                     if (args[1].equals("discord", ignoreCase = true)) {
-                        try {
                             discordController.sendDailyMessage()
-                            try {
-                                plugin.mySQL.resetDaily()
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        } catch (ignored: Exception) {
-                        }
-                        //DiscordManager.getInstance().sendWinnerMessage();
+                            Database.resetWeekly()
                     }
                 }
             } else if (args[0].equals("help", ignoreCase = true)) {
-                player.sendMessage(
-                    formatter.deserialize(
-                        "<bold><gradient:#F09D00:#F8BD04><st>                    </st></gradient></bold>" +
-                                " <gradient:#F2E205:#F2A30F>OnlineTime</gradient> " +
-                                "<bold><gradient:#F8BD04:#F09D00><st>                    </st></gradient></bold>"
-                    )
-                )
+                player.sendMessage(Settings.formatMessage(Message.HEADER).toComponent())
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime"))
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime weekly"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime <color:#00F3FF><gamemode>"))
+                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime <color:#00F3FF><server>"))
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime get <color:#00F3FF><user>"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime get <color:#00F3FF><user> <gamemode>"))
+                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime get <color:#00F3FF><user> <server>"))
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime top"))
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime top weekly"))
                 player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime help"))
             } else {
-                plugin.server.scheduler.buildTask(plugin) {
-                    try {
-                        val totalTime: Long = plugin.mySQL.getPlayerOnlineTime(
-                            player.uniqueId, args[0].lowercase(
-                                Locale.getDefault()
-                            )
-                        )
-                        if (totalTime == 0L) {
-                            player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#D72D32>You don't have any data in <color:#C1D6F1>${Utils.capitalize(args[0])}</color>!"))
-                            return@buildTask
-                        }
-                        val seconds = totalTime / 1000
-                        val hours = (seconds / 3600).toInt()
-                        val minutes = (seconds % 3600 / 60).toInt()
-                        player.sendMessage(formatter.deserialize("${Settings.prefix}<color:#C1D6F1>${Utils.capitalize(args[0])}</color><color:#00F3FF> onlinetime:</color> <color:#C0D3EF>${hours}h ${minutes}m"))
-                    } catch (ex: Exception) {
-                        ex.printStackTrace()
+                Database.getPlayerOnlineTime(player.uniqueId, args[0].lowercase()).whenComplete { time, _ ->
+                    if (time < 1) {
+                        player.sendMessage(Settings.formatMessage(Message.PLAYER_NOT_FOUND_SERVER, TextReplacement("server", StringUtils.capitalize(args[0]))).toComponent())
+                        return@whenComplete
                     }
-                }.schedule()
+
+                    player.sendMessage(Settings.formatMessage(Message.ONLINETIME_SERVER_USE, TextReplacement("time", time.format()), TextReplacement("server", StringUtils.capitalize(args[0]))).toComponent())
+                }
             }
         }
     }
@@ -190,17 +124,17 @@ class OnlineTimeCommand(
     override fun suggest(invocation: SimpleCommand.Invocation): List<String> {
         val list: MutableList<String> = ArrayList()
         val args = invocation.arguments()
-        plugin.logger.warn("Arg Length: " + args.size)
+        VRuom.warn("Arg Length: " + args.size)
         if (args.size <= 1) {
             list.add("help")
             list.add("weekly")
             list.add("get")
             list.add("top")
-            list.addAll(plugin.server.allServers.map { it.serverInfo.name })
+            list.addAll(VRuom.getServer().allServers.map { it.serverInfo.name })
         } else {
             if (args[0].equals("get", ignoreCase = true)) {
                 if (args.size >= 3) {
-                    for (server in plugin.server.allServers) {
+                    for (server in VRuom.getServer().allServers) {
                         if (args[2].isEmpty()) {
                             list.add(server.serverInfo.name)
                         } else {
@@ -214,7 +148,7 @@ class OnlineTimeCommand(
                         }
                     }
                 } else {
-                    for (player in plugin.server.allPlayers) {
+                    for (player in VRuom.getServer().allPlayers) {
                         if (args[1].isEmpty()) {
                             list.add(player.username)
                         } else {
@@ -244,11 +178,11 @@ class OnlineTimeCommand(
             list.add("weekly")
             list.add("get")
             list.add("top")
-            list.addAll(plugin.server.allServers.map { it.serverInfo.name })
+            list.addAll(VRuom.getServer().allServers.map { it.serverInfo.name })
         } else {
             if (args[0].equals("get", ignoreCase = true)) {
                 if (args.size >= 3) {
-                    for (server in plugin.server.allServers) {
+                    for (server in VRuom.getServer().allServers) {
                         if (args[2].isEmpty()) {
                             list.add(server.serverInfo.name)
                         } else {
@@ -262,7 +196,7 @@ class OnlineTimeCommand(
                         }
                     }
                 } else {
-                    for (player in plugin.server.allPlayers) {
+                    for (player in VRuom.getServer().allPlayers) {
                         if (args[1].isEmpty()) {
                             list.add(player.username)
                         } else {

@@ -1,9 +1,11 @@
-package ir.syrent.velocityonlinetime.spigot
+package ir.syrent.velocityonlinetime.spigot.dependency
 
+import ir.syrent.velocityonlinetime.spigot.VelocityOnlineTimeSpigot
+import ir.syrent.velocityonlinetime.utils.Utils.format
 import me.clip.placeholderapi.expansion.PlaceholderExpansion
 import org.bukkit.OfflinePlayer
 
-class Placeholder(
+class PlaceholderAPI(
     private val plugin: VelocityOnlineTimeSpigot
 ) : PlaceholderExpansion() {
 
@@ -24,13 +26,9 @@ class Placeholder(
     }
 
     override fun onRequest(player: OfflinePlayer, params: String): String {
-        return if (params.equals("onlinetime", ignoreCase = true)) {
+        return if (params.equals("onlinetime", true)) {
             try {
-                val totalTime = plugin.sql?.getPlayerOnlineTime(player.uniqueId, "total_time")
-                val seconds = totalTime?.div(1000)
-                val hours = (seconds?.div(3600))?.toInt()
-                val minutes = ((seconds?.rem(3600) ?: 3600) / 60).toInt()
-                "${hours}h ${minutes}m"
+                return plugin.playersOnlineTime[player.name]?.format() ?: 0L.format()
             } catch (e: Exception) {
                 "-"
             }

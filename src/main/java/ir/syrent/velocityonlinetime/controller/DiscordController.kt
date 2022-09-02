@@ -2,14 +2,18 @@ package ir.syrent.velocityonlinetime.controller
 
 import ir.syrent.velocityonlinetime.OnlinePlayer
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
+import ir.syrent.velocityonlinetime.storage.Database
 import ir.syrent.velocityonlinetime.storage.Settings
-import ir.syrent.velocityonlinetime.utils.DateUtils
-import ir.syrent.velocityonlinetime.utils.Utils
+import ir.syrent.velocityonlinetime.utils.Utils.format
+import me.mohamad82.ruom.VRuom
 import net.dv8tion.jda.api.EmbedBuilder
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
+import net.dv8tion.jda.api.entities.MessageEmbed
 import net.dv8tion.jda.api.entities.TextChannel
-import net.dv8tion.jda.api.hooks.ListenerAdapter
+import net.dv8tion.jda.api.events.GenericEvent
+import net.dv8tion.jda.api.events.ReadyEvent
+import net.dv8tion.jda.api.hooks.EventListener
 import net.kyori.adventure.text.minimessage.MiniMessage
 import java.awt.Color
 import java.util.*
@@ -17,11 +21,11 @@ import java.util.concurrent.TimeUnit
 
 class DiscordController(
     private val plugin: VelocityOnlineTime
-): ListenerAdapter() {
+): EventListener {
 
-    var jda: JDA? = null
-    private var weeklyTopChannel: TextChannel? = null
-    private var staffOnlineTimeChannel: TextChannel? = null
+    private lateinit var jda: JDA
+    private lateinit var weeklyTopChannel: TextChannel
+    private lateinit var staffOnlineTimeChannel: TextChannel
     private var weeklyOnlineTimeSent = false
     private var staffOnlineTimeSent = false
     private val miniMessage = MiniMessage.miniMessage()
@@ -31,41 +35,40 @@ class DiscordController(
     }
 
     private fun connect() {
-        var connected = false
+        VRuom.log("Connecting to Discord bot...")
+        jda = JDABuilder.createDefault(Settings.discordToken).addEventListeners(this).build().awaitReady()
+        VRuom.log("Connected to Discord bot!")
+    }
 
-        plugin.server.scheduler.buildTask(plugin) {
-            if (!connected) {
-                plugin.logger.info("DiscordJDA is not connected! trying to connect...")
-                jda = JDABuilder.createDefault(Settings.discordToken).build().awaitReady()
-                plugin.logger.info("DiscordJDA is now connected!")
+    private fun shutdown() {
+        jda.shutdown()
+    }
 
-                initializeOnlineTimeChannels()
-
-                plugin.server.scheduler.buildTask(plugin) {
-                    /*plugin.logger.info("Registering Discord event listener...")
-                            jda?.addEventListener(this) ?: throw NullPointerException("JDA is null!")
-                            plugin.logger.info("Discord event listener successfully registered.")*/
-                    checkTime()
-                }.delay(10L, TimeUnit.SECONDS).schedule()
-                connected = true
-            }
-        }.delay( /* TODO: Read time from yaml file */ 3L, TimeUnit.SECONDS).schedule()
+    override fun onEvent(event: GenericEvent) {
+        if (event is ReadyEvent) {
+            VRuom.log("DiscordJDA API is ready!")
+            initializeOnlineTimeChannels()
+            checkTime()
+        }
     }
 
     private fun initializeOnlineTimeChannels() {
-        weeklyTopChannel = jda?.getTextChannelById(Settings.weeklyTopChannel) ?: throw NullPointerException("JDA is null!")
-        staffOnlineTimeChannel = jda?.getTextChannelById(Settings.staffOnlineTimeChannel) ?: throw NullPointerException("JDA is null")
+        weeklyTopChannel = jda.getTextChannelById(Settings.weeklyChannelID) ?: throw NullPointerException("JDA is null!")
+        staffOnlineTimeChannel = jda.getTextChannelById(Settings.dailyChannelID) ?: throw NullPointerException("JDA is null")
+    }
+
+    fun sendMessage(embed: MessageEmbed, channel: TextChannel) {
+        channel.sendMessageEmbeds(embed).queue()
     }
 
     /**
      * Checks if the time has passed and sends the onlinetime message if it has.
      */
     private fun checkTime() {
-        plugin.server.scheduler.buildTask(plugin) {
+        VRuom.getServer().scheduler.buildTask(plugin) {
             val hours = Calendar.getInstance()[Calendar.HOUR_OF_DAY]
-            // TODO: Read time from yaml file
-            if (hours == 0) {
-                if (Settings.weeklyTopEnabled) {
+            if (hours == Settings.weeklyHourOfDay) {
+                if (Settings.weeklyEnabled) {
                     sendWeeklyOnlineTime()
                 }
                 if (Settings.staffOnlineTimeEnabled) {
@@ -84,30 +87,32 @@ class DiscordController(
      */
     private fun sendWeeklyOnlineTime() {
         if (!weeklyOnlineTimeSent) {
-            // TODO: Read time from yaml file
-            if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == 7) {
-                val username = plugin.mySQL.getWeeklyTops(1)[0].userName
+            if (Calendar.getInstance()[Calendar.DAY_OF_WEEK] == Settings.weeklyDayOfWeek) {
+                Database.getWeeklyTop().whenComplete { onlinePlayer, _ ->
+                    val username = onlinePlayer.userName
 
-                if (Settings.weeklyTopGiveReward) {
-                    giveReward(username)
-                }
+                    if (Settings.weeklyTopGiveReward) {
+                        giveReward(username)
+                    }
 
-                // TODO: Read message from yaml file
-                if (Settings.weeklyServerAnnouncementEnabled) {
-                    plugin.server.allPlayers.forEach { player ->
-                        for (line in Settings.weeklyServerAnnouncementContent) {
-                            player.sendMessage(miniMessage.deserialize(
-                                line
-                                    .replace("\$prefix", Settings.prefix)
-                                    .replace("\$username", username)
-                            ))
+                    if (Settings.weeklyServerAnnouncementEnabled) {
+                        VRuom.getServer().allPlayers.forEach { player ->
+                            for (line in Settings.weeklyServerAnnouncementContent) {
+                                player.sendMessage(miniMessage.deserialize(
+                                    line
+                                        .replace("\$prefix", Settings.prefix)
+                                        .replace("\$player", username)
+                                ))
+                            }
                         }
                     }
+
+                    sendWinnerMessage()
+                    Database.resetWeekly()
+                    weeklyOnlineTimeSent = true
                 }
 
-                sendWinnerMessage()
-                plugin.mySQL.resetWeekly()
-                weeklyOnlineTimeSent = true
+
             }
         }
     }
@@ -115,85 +120,68 @@ class DiscordController(
     private fun sendStaffOnlineTime() {
         if (!staffOnlineTimeSent) {
             sendDailyMessage()
-            plugin.mySQL.resetDaily()
+            Database.resetDaily()
             staffOnlineTimeSent = true
         }
     }
 
     private fun giveReward(username: String) {
         for (reward in Settings.weeklyTopRewards) {
-            plugin.server.commandManager.executeAsync(plugin.server.consoleCommandSource, reward.replace("\$username", username))
+            VRuom.getServer().commandManager.executeAsync(VRuom.getServer().consoleCommandSource, reward.replace("\$username", username))
         }
 
-        plugin.logger.info("$username won weekly reward!")
+        VRuom.log("$username won weekly reward!")
     }
 
-    // TODO: Read embed content from config file
     private fun sendWinnerMessage() {
-        val onlinePlayers: List<OnlinePlayer> = plugin.mySQL.getWeeklyTops(3)
-        val totalTime = onlinePlayers[0].time
-        val seconds = totalTime / 1000
-        val hours = (seconds / 3600).toInt()
-        val minutes = (seconds % 3600 / 60).toInt()
-
-        val embed = EmbedBuilder()
-        embed.setTitle("\uD83E\uDDED  OnlineTime | ${DateUtils.currentShamsidate}", null)
-        embed.setColor(Color(0xc1d6f1))
-        embed.appendDescription("⏱️ مسابقه بیشترین پلی تایم این هفته سرور به پایان رسید!")
-        embed.appendDescription("\n")
-        embed.appendDescription("\n")
-        embed.appendDescription("این هفته ${onlinePlayers[0].userName} با $hours ساعت و $minutes دقیقه پلی تایم برنده شد")
-        embed.appendDescription("\n")
-        embed.appendDescription("\n")
-        embed.appendDescription(
-                "\uD83C\uDFC6 نفرات برتر این هفته:\n" +
-                "\uD83E\uDD47 ${onlinePlayers[0].userName}\n" +
-                "\uD83E\uDD48 ${onlinePlayers[1].userName}\n" +
-                "\uD83E\uDD49 ${onlinePlayers[2].userName}\n",
-        )
-        embed.appendDescription("\n")
-        embed.appendDescription(
-            "\uD83D\uDD39 شما هم با پلی دادن و دریافت رتبه \uD83E\uDD47 " +
-                    "در داخل سرور میتوانید در هر هفته برنده رنک **Baron** به مدت یک هفته بشوید !\n" +
-                    "\n" +
-                    "\uD83D\uDD39 Play.QPixel.IR\n" +
-                    "\uD83D\uDFE3 QPixel.IR/Discord\n" +
-                    "\uD83C\uDF10 wWw.QPixel.IR"
-        )
-        embed.setFooter("${Settings.networkName} | OnlineTime")
-
-        embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayers[0].userName}/64.png")
-        weeklyTopChannel?.sendMessageEmbeds(embed.build())
-            ?.append("<@&758758796167348285>")
-            ?.queue() ?: throw NullPointerException("Can't send embed message to onlinetime channel")
-    }
-
-    // TODO: Read embed content from config file
-    fun sendDailyMessage() {
-        val onlinePlayerList: List<OnlinePlayer> = plugin.mySQL.dailyOnlineTimes
-        for (onlinePlayer: OnlinePlayer in onlinePlayerList) {
-            val totalTime = onlinePlayer.time
+        Database.getWeeklyTop().whenComplete { onlinePlayer, _ ->
+            val time = onlinePlayer.time
 
             val embed = EmbedBuilder()
-            embed.setTitle("\uD83E\uDDED ${onlinePlayer.userName} Daily OnlineTime | ${DateUtils.currentShamsidate}", null)
-            embed.setColor(Color(0x2F5FBE))
-            embed.appendDescription("Total Time: ${Utils.formatTime(totalTime)}")
-            embed.appendDescription("\n")
-            embed.appendDescription("\n")
-
-            for (registeredServer in plugin.server.allServers) {
-                val serverName = registeredServer.serverInfo.name
-                val serverOnlineTime: Long = plugin.mySQL.getDailyOnlineTime(onlinePlayer.uuid, serverName)
-
-                if (serverOnlineTime > 0) {
-                    embed.addField("$serverName: ", Utils.formatTime(serverOnlineTime), true)
-                }
+            embed.setTitle(Settings.discordWeeklyTitle.replace("\$network", Settings.networkName), Settings.discordWeeklyURL)
+            embed.setColor(Color.getColor(Settings.discordWeeklyColor))
+            for (line in Settings.discordWeeklyDescription) {
+                embed.appendDescription(line.replace("\$time", time.format()))
             }
+            embed.setFooter(Settings.discordWeeklyFooter.replace("\$network", Settings.networkName), Settings.discordWeeklyURL)
+            embed.setThumbnail(Settings.discordWeeklyThumbnail.replace("\$winner", onlinePlayer.userName))
 
-            embed.setFooter("${Settings.networkName} | OnlineTime")
-            embed.setThumbnail("http://cravatar.eu/avatar/${onlinePlayer.userName}/64.png")
+            weeklyTopChannel.sendMessageEmbeds(embed.build()).apply {
+                for (content in Settings.discordWeeklyContent) {
+                    this.addContent(content)
+                }
+            }.queue()
+        }
+    }
 
-            staffOnlineTimeChannel?.sendMessageEmbeds(embed.build())?.queue() ?: throw NullPointerException("Staff onlinetime channel not found!")
+    fun sendDailyMessage() {
+        Database.dailyOnlineTimes.whenComplete { onlinePlayers, _ ->
+            for (onlinePlayer: OnlinePlayer in onlinePlayers) {
+                val totalTime = onlinePlayer.time
+
+                val embed = EmbedBuilder()
+                embed.setTitle(Settings.discordDailyTitle.replace("\$network", Settings.networkName), Settings.discordDailyURL)
+                embed.setColor(Color.getColor(Settings.discordDailyColor))
+                for (line in Settings.discordDailyDescription) {
+                    embed.appendDescription(line.replace("\$time", totalTime.format()))
+                }
+
+                if (Settings.discordDailyAppendGamemodes) {
+                    for (registeredServer in VRuom.getServer().allServers) {
+                        val serverName = registeredServer.serverInfo.name
+                        Database.getDailyOnlineTime(onlinePlayer.uuid, serverName).whenComplete { time, _ ->
+                            if (time > Settings.weeklyHourOfDay) {
+                                embed.addField("$serverName: ", time.format(), true)
+                            }
+                        }
+                    }
+                }
+
+                embed.setFooter(Settings.discordDailyFooter.replace("\$network", Settings.networkName), Settings.discordDailyURL)
+                embed.setThumbnail(Settings.discordDailyThumbnail.replace("\$player", onlinePlayer.userName))
+
+                staffOnlineTimeChannel.sendMessageEmbeds(embed.build()).queue()
+            }
         }
     }
 }

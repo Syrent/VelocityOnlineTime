@@ -1,24 +1,40 @@
 package ir.syrent.velocityonlinetime.spigot
 
-import ir.syrent.velocityonlinetime.database.MySQL
-import ir.syrent.velocityonlinetime.database.SQL
-import ir.syrent.velocityonlinetime.storage.Settings
+import ir.syrent.velocityonlinetime.spigot.bridge.BukkitBridgeListener
+import ir.syrent.velocityonlinetime.spigot.dependency.PlaceholderAPI
+import ir.syrent.velocityonlinetime.spigot.listener.PlayerJoinListener
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 
 class VelocityOnlineTimeSpigot : JavaPlugin() {
 
-    var sql: SQL? = null
+    val playersOnlineTime = mutableMapOf<String, Long>()
 
     override fun onEnable() {
-        val host = Settings.host
-        val database = Settings.database
-        val username = Settings.username
-        val password = Settings.password
-        val port = Settings.port
-        sql = MySQL(host, port, database, username, password)
+        this.server.messenger.registerOutgoingPluginChannel(this, VELOCITYONLINETIME_CHANNEL)
+        server.messenger.registerIncomingPluginChannel(this, VELOCITYONLINETIME_CHANNEL, BukkitBridgeListener(this))
+
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            Placeholder(this).register()
+            PlaceholderAPI(this).register()
         }
+    }
+
+    override fun onDisable() {
+        server.messenger.unregisterOutgoingPluginChannel(this)
+        server.messenger.unregisterIncomingPluginChannel(this)
+    }
+
+    private fun registerListeners() {
+        PlayerJoinListener(this)
+    }
+
+    companion object {
+        lateinit var instance: VelocityOnlineTimeSpigot
+            private set
+        /**
+         * The name should be same name that used in Velocity main class
+         * @see ir.syrent.velocityonlinetime.VelocityOnlineTime
+         */
+        const val VELOCITYONLINETIME_CHANNEL = "velocityonlinetime:main"
     }
 }
