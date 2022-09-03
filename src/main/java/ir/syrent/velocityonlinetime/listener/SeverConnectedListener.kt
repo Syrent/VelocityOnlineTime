@@ -4,8 +4,8 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.ServerConnectedEvent
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
 import ir.syrent.velocityonlinetime.storage.Database
-import ir.syrent.velocityonlinetime.utils.MilliCounter
 import me.mohamad82.ruom.VRuom
+import me.mohamad82.ruom.utils.MilliCounter
 import java.util.*
 
 class SeverConnectedListener(

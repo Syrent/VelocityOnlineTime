@@ -13,7 +13,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
-class SQLiteDatabase(dbFile: File?) : SQLiteExecutor(dbFile, Logger.getLogger(VRuom.getPlugin().name)) {
+open class SQLiteDatabase(dbFile: File?) : SQLiteExecutor(dbFile, Logger.getLogger(VRuom.getPlugin().name)) {
 
     private var queueTask: ScheduledTask? = null
     override fun connect() {
@@ -42,7 +42,7 @@ class SQLiteDatabase(dbFile: File?) : SQLiteExecutor(dbFile, Logger.getLogger(VR
         return completableFuture
     }
 
-    protected fun startQueue(): ScheduledTask {
+    private fun startQueue(): ScheduledTask {
         val runnable = object : Runnable {
             override fun run() {
                 tick()

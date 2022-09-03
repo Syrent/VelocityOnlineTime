@@ -12,7 +12,6 @@ import ir.syrent.velocityonlinetime.utils.Utils.format
 import ir.syrent.velocityonlinetime.utils.Utils.toComponent
 import me.mohamad82.ruom.VRuom
 import me.mohamad82.ruom.string.StringUtils
-import net.kyori.adventure.text.minimessage.MiniMessage
 import java.util.*
 import java.util.concurrent.CompletableFuture
 
@@ -31,7 +30,6 @@ class OnlineTimeCommand(
     override fun execute(invocation: SimpleCommand.Invocation) {
         val player = invocation.source() as Player
         val args = invocation.arguments()
-        val formatter = MiniMessage.miniMessage()
 
         if (args.isEmpty()) {
             Database.getPlayerOnlineTime(player.uniqueId).whenComplete { time, _ ->
@@ -101,14 +99,14 @@ class OnlineTimeCommand(
                 }
             } else if (args[0].equals("help", true)) {
                 player.sendMessage(Settings.formatMessage(Message.HEADER).toComponent())
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime weekly"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime <color:#00F3FF><server>"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime get <color:#00F3FF><user>"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime get <color:#00F3FF><user> <server>"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime top"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime top weekly"))
-                player.sendMessage(formatter.deserialize("<color:#F2E205>/onlinetime help"))
+                player.sendMessage("<color:#F2E205>/onlinetime".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime weekly".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime <color:#00F3FF><server>".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime get <color:#00F3FF><user>".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime get <color:#00F3FF><user> <server>".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime top".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime top weekly".toComponent())
+                player.sendMessage("<color:#F2E205>/onlinetime help".toComponent())
             } else {
                 Database.getPlayerOnlineTime(player.uniqueId, args[0].lowercase()).whenComplete { time, _ ->
                     if (time < 1) {

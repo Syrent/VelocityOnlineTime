@@ -12,7 +12,10 @@ class BukkitBridgeListener(
 
     override fun onPluginMessageReceived(channel: String, player: Player, message: ByteArray) {
         val rawMessage = String(message, StandardCharsets.UTF_8).substring(2)
+
+        // Legacy minecraft version still use old Gson#getParser
         val onlinePlayerData = GsonUtils.getParser().parse(rawMessage).asJsonObject
+
         val playerName = onlinePlayerData["player"].asString
         val onlinetime = onlinePlayerData["onlinetime"].asLong
 

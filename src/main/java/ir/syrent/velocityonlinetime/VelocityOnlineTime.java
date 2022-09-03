@@ -7,6 +7,7 @@ import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.messages.ChannelIdentifier;
 import com.velocitypowered.api.proxy.messages.MinecraftChannelIdentifier;
+import ir.syrent.velocityonlinetime.command.OnlineTimeCommand;
 import ir.syrent.velocityonlinetime.controller.DiscordController;
 import ir.syrent.velocityonlinetime.listener.DisconnectListener;
 import ir.syrent.velocityonlinetime.listener.PluginMessageListener;
@@ -64,7 +65,7 @@ public class VelocityOnlineTime extends VRUoMPlugin {
     }
 
     /**
-     * Plugin starts a MilliCounter ${@link ir.syrent.velocityonlinetime.utils.MilliCounter}  whenever
+     * Plugin starts a MilliCounter ${@link me.mohamad82.ruom.utils.MilliCounter}  whenever
      * a player joins the server and ends it when the player disconnects or changes the server.
      * Whenever the player disconnect or change the server, the plugin will save his online time (LeaveTime - JoinTime) to database.
      */

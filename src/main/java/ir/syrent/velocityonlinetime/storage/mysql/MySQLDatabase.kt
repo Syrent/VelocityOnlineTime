@@ -39,7 +39,7 @@ class MySQLDatabase(credentials: MySQLCredentials?, poolingSize: Int) : MySQLExe
         return completableFuture
     }
 
-    fun startQueue(): ScheduledTask {
+    private fun startQueue(): ScheduledTask {
         val runnable = object : Runnable {
             override fun run() {
                 if (poolingUsed >= poolingSize) {
