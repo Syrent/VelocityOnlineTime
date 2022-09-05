@@ -5,9 +5,9 @@ Minecraft OnlineTime/PlayTime plugin for [Velocity](https://github.com/PaperMC/V
 | Command | Description |
 | --- | --- |
 | onlinetime | Get onlinetime |
-| onlinetime <server> | Get onlinetime on specific server |
-| onlinetime get <player> | Get specific player's onlinetime |
-| onlinetime get <player> <server> | Get specific player's onlinetime on target server |
+| onlinetime [server] | Get onlinetime on specific server |
+| onlinetime get [player] | Get specific player's onlinetime |
+| onlinetime get [player] [server] | Get specific player's onlinetime on target server |
 | onlinetime weekly | Get your weekly onlinetime |
 | onlinetime weekly top | Get top weekly players |
 | onlinetime help | see all available commands |
