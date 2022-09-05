@@ -1,5 +1,5 @@
 # VelocityOnlineTime
-Minecraft OnlineTime/PlayTime system that works with Velocity.
+Minecraft OnlineTime/PlayTime plugin for [Velocity](https://github.com/PaperMC/Velocity) servers. (If you looking for onlinetime plugin for an bungeecord you can use [BungeeOnlineTime](https://github.com/R3fleXi0n/BungeeOnlineTime))
 
 ## Commands:
 | Command | Description |
