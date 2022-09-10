@@ -18,6 +18,6 @@
                 "$prefix<bold><color:#F2E205>player Won weekly playtime reward!"
             ]
     [discord.daily]
-    enabled = false
-    append_gamemodes = true
+        enabled = false
+        append_gamemodes = true
         channel_id = 0

@@ -2,7 +2,6 @@ package ir.syrent.velocityonlinetime.storage.sqlite
 
 import com.velocitypowered.api.scheduler.ScheduledTask
 import ir.syrent.velocityonlinetime.VelocityOnlineTime
-import me.mohamad82.ruom.Ruom
 import me.mohamad82.ruom.VRuom
 import me.mohamad82.ruom.database.Query
 import me.mohamad82.ruom.database.sqlite.SQLiteExecutor
@@ -58,7 +57,7 @@ open class SQLiteDatabase(dbFile: File?) : SQLiteExecutor(dbFile, Logger.getLogg
 
     override fun onQueryFail(query: Query) {
         VRuom.error("Failed to perform a query in the sqlite database. Stacktrace:")
-        Ruom.debug("Statement: " + query.statement)
+        VRuom.debug("Statement: " + query.statement)
     }
 
     override fun onQueryRemoveDueToFail(query: Query) {

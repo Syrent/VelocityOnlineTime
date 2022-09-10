@@ -47,19 +47,38 @@ object Database {
             database = MySQLDatabase(credentials, table.getLong("pooling_size").toInt())
             type = DBType.MYSQL
         } else {
-            database = SQLiteDatabase(File(storageFile.parentFile, "storage.db"))
+            val file = File(VRuom.getDataFolder(), "storage.db")
+            database = SQLiteDatabase(file)
         }
 
         database.connect()
 
-        createdTables()
-        createColumns()
+
+        if (type == DBType.MYSQL) {
+            createdMySQLTable()
+            createColumns()
+        } else {
+            createdMySQLTable()
+        }
     }
 
-    private fun createdTables() {
+    private fun createdMySQLTable() {
         database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT);"), Priority.HIGHEST)
         database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime_weekly (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT);"), Priority.HIGHEST)
         database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime_daily (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT);"), Priority.HIGHEST)
+    }
+
+    private fun createSQLiteTable() {
+        var serverValues = ""
+        VRuom.getServer().allServers.forEach { registeredServer ->
+            val serverName = registeredServer.serverInfo.name.lowercase()
+            serverValues += "$serverName BIGINT, "
+        }
+        serverValues = serverValues.substring(0, serverValues.length - 2)
+
+        database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT, $serverValues);"), Priority.HIGHEST)
+        database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime_weekly (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT, $serverValues );"), Priority.HIGHEST)
+        database.queueQuery(Query.query("CREATE TABLE IF NOT EXISTS velocityonlinetime_daily (UUID VARCHAR(64) UNIQUE, name VARCHAR(16), time BIGINT, $serverValues );"), Priority.HIGHEST)
     }
 
     private fun createColumns() {
