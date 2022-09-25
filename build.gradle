@@ -40,7 +40,6 @@ repositories {
 dependencies {
     implementation 'com.moandjiezana.toml:toml4j:0.7.2'
     implementation 'me.mohamad82:ruom-velocity:4.2.9'
-    implementation 'me.mohamad82:ruom-bukkit:4.9.1'
     implementation 'me.mohamad82:ruom-core:4.1.0'
     implementation 'commons-io:commons-io:2.6'
 
