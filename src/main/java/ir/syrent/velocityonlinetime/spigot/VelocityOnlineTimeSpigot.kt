@@ -20,8 +20,7 @@ class VelocityOnlineTimeSpigot : JavaPlugin() {
     }
 
     override fun onDisable() {
-        server.messenger.unregisterOutgoingPluginChannel(this)
-        server.messenger.unregisterIncomingPluginChannel(this)
+        Ruom.shutdown()
     }
 
     private fun registerListeners() {
