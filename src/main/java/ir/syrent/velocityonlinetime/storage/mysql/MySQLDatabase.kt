@@ -2,11 +2,11 @@ package ir.syrent.velocityonlinetime.storage.mysql
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.velocitypowered.api.scheduler.ScheduledTask
+import ir.syrent.velocityonlinetime.utils.ServerVersion
 import me.mohamad82.ruom.VRuom
 import me.mohamad82.ruom.database.Query
 import me.mohamad82.ruom.database.mysql.MySQLCredentials
 import me.mohamad82.ruom.database.mysql.MySQLExecutor
-import me.mohamad82.ruom.utils.ServerVersion
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
