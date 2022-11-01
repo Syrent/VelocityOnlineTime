@@ -2,7 +2,7 @@
     raw_prefix = ""
     prefix = "<gradient:#F2E205:#F2A30F>OnlineTime</gradient> <color:#555197>| "
     console_prefix = "<gray>[<yellow>OnlineTime</yellow>] "
-    sucessful_prefix = "<dark_gray>[</dark_gray><dark_green><bold>✔</bold><dark_gray>]</dark_gray>"
+    successful_prefix = "<dark_gray>[</dark_gray><dark_green><bold>✔</bold><dark_gray>]</dark_gray>"
     warn_prefix = "<dark_gray>[</dark_gray><gold><bold>!</bold><dark_gray>]</dark_gray>"
     error_prefix = "<dark_gray>[</dark_gray><dark_red><bold>✘</bold><dark_gray>]</dark_gray>"
     unknown_message = "$error_prefix <gradient:dark_red:red>Unknown message!"

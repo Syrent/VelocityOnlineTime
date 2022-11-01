@@ -2,7 +2,7 @@ package ir.syrent.velocityonlinetime.storage.mysql
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import com.velocitypowered.api.scheduler.ScheduledTask
-import ir.syrent.velocityonlinetime.utils.ServerVersion
+import me.mohamad82.ruom.VRUoMPlugin
 import me.mohamad82.ruom.VRuom
 import me.mohamad82.ruom.database.Query
 import me.mohamad82.ruom.database.mysql.MySQLCredentials
@@ -18,7 +18,7 @@ class MySQLDatabase(credentials: MySQLCredentials?, poolingSize: Int) : MySQLExe
 
     private var queueTask: ScheduledTask? = null
     override fun connect() {
-        super.connect(if (ServerVersion.supports(13)) "com.mysql.cj.jdbc.Driver" else "com.mysql.jdbc.Driver")
+        super.connect("com.mysql.cj.jdbc.Driver")
         queueTask = startQueue()
     }
 
@@ -50,7 +50,7 @@ class MySQLDatabase(credentials: MySQLCredentials?, poolingSize: Int) : MySQLExe
                 tick(this)
             }
         }
-        return VRuom.getServer().scheduler.buildTask(VRuom.getPlugin(), runnable).schedule()
+        return VRuom.getServer().scheduler.buildTask(VRUoMPlugin.get(), runnable).schedule()
     }
 
     override fun executeQuery(query: Query): CompletableFuture<Int> {
@@ -63,14 +63,15 @@ class MySQLDatabase(credentials: MySQLCredentials?, poolingSize: Int) : MySQLExe
                 if (query.statement.startsWith("INSERT") ||
                     query.statement.startsWith("UPDATE") ||
                     query.statement.startsWith("DELETE") ||
-                    query.statement.startsWith("CREATE")
+                    query.statement.startsWith("CREATE") ||
+                    query.statement.startsWith("ALTER")
                 ) preparedStatement.executeUpdate() else resultSet = preparedStatement.executeQuery()
                 query.completableFuture.complete(resultSet)
                 closeConnection(connection)
                 completableFuture.complete(Query.StatusCode.FINISHED.code)
             } catch (e: SQLException) {
-                VRuom.error("Failed to perform a query in the sqlite database. Stacktrace:")
-                VRuom.debug("Statement: " + query.statement)
+                VRuom.error("Failed to perform a query in the mysql database. Stacktrace:")
+                VRuom.error("Statement: " + query.statement)
                 e.printStackTrace()
                 query.increaseFailedAttempts()
                 if (query.failedAttempts > failAttemptRemoval) {

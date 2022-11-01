@@ -24,6 +24,7 @@ object Settings {
     var port: Int = 3306
 
     /* Discord */
+    var discordEnabled = false
     lateinit var weeklyTopRewards: List<String>
     lateinit var weeklyServerAnnouncementContent: List<String>
     lateinit var discordToken: String
@@ -60,6 +61,7 @@ object Settings {
         initializeToml()
 
         /* Discord */
+        discordEnabled = getBoolean(configurationToml, "discord.enabled")
         weeklyEnabled = getBoolean(configurationToml, "discord.weekly.enabled")
         weeklyDayOfWeek = getInt(configurationToml, "discord.weekly.day_of_week")
         weeklyHourOfDay = getInt(configurationToml, "discord.weekly.hour_of_day")

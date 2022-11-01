@@ -64,7 +64,9 @@ processResources {
 }
 
 shadowJar {
-    relocate('me.mohamad82.ruom', 'me.sayandevelopment.velocityonlinetime.ruom')
+    minimize()
+    relocate('me.mohamad82.ruom', 'ir.syrent.velocityonlinetime.ruom')
+    relocate('com.zaxxer.hikari', 'ir.syrent.velocityonlinetime.hikari')
     archiveFileName = findProperty("plugin-name") + " v" + findProperty("version") + ".jar"
 }
 

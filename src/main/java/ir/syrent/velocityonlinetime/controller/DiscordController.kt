@@ -28,7 +28,7 @@ class DiscordController(
     private val miniMessage = MiniMessage.miniMessage()
 
     init {
-        connect()
+        if (Settings.discordEnabled) connect()
     }
 
     private fun connect() {

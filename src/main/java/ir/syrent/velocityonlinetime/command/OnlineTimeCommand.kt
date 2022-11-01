@@ -121,7 +121,7 @@ class OnlineTimeCommand(
     }
 
     override fun suggest(invocation: SimpleCommand.Invocation): List<String> {
-        val list: MutableList<String> = ArrayList()
+        val list = mutableListOf<String>()
         val args = invocation.arguments()
 
         if (args.size <= 1) {
@@ -158,12 +158,12 @@ class OnlineTimeCommand(
             }
         }
 
-        return list.filter { it.lowercase().startsWith(args.last().lowercase()) }.sorted()
+        return if (args.isNotEmpty()) list.filter { it.lowercase().startsWith(args.last().lowercase()) }.sorted() else list
     }
 
     override fun suggestAsync(invocation: SimpleCommand.Invocation): CompletableFuture<List<String>> {
         val listCompletableFuture = CompletableFuture<List<String>>()
-        val list: MutableList<String> = ArrayList()
+        val list = mutableListOf<String>()
         val args = invocation.arguments()
 
         if (args.size <= 1) {
@@ -200,7 +200,7 @@ class OnlineTimeCommand(
             }
         }
 
-        listCompletableFuture.complete(list.filter { it.lowercase().startsWith(args.last().lowercase()) }.sorted())
+        listCompletableFuture.complete(if (args.isNotEmpty()) list.filter { it.lowercase().startsWith(args.last().lowercase()) }.sorted() else list)
         return listCompletableFuture
     }
 }

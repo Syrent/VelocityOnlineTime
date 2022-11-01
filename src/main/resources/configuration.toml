@@ -1,4 +1,5 @@
 [discord]
+    enabled = false
     token = "example token"
     [discord.weekly]
         enabled = false

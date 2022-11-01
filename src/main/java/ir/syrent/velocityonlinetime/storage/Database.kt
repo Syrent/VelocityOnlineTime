@@ -55,10 +55,10 @@ object Database {
 
 
         if (type == DBType.MYSQL) {
-            createdMySQLTable()
-            createColumns()
+            // Fix this
+            createSQLiteTable()
         } else {
-            createdMySQLTable()
+            createSQLiteTable()
         }
     }
 
@@ -82,6 +82,7 @@ object Database {
     }
 
     private fun createColumns() {
+        createdMySQLTable()
         VRuom.getServer().allServers.forEach { registeredServer ->
             val serverName = registeredServer.serverInfo.name.lowercase()
 
@@ -130,16 +131,17 @@ object Database {
         val completableFuture = CompletableFuture<Boolean>()
         val timeCompletableFuture = CompletableFuture<Long>()
 
-        for (serverName in VRuom.getServer().allServers.map { it.serverInfo.name }) {
-            database.queueQuery(Query.query("SELECT * FROM velocityonlinetime WHERE UUID='$uuid'"))
-                .completableFuture.whenComplete { result, _ ->
+        database.queueQuery(Query.query("SELECT * FROM velocityonlinetime WHERE UUID='$uuid'"))
+            .completableFuture.whenComplete { result, _ ->
+                if (result.next()) {
                     var time: Long = 0
-                    while (result.next()) {
+                    for (serverName in VRuom.getServer().allServers.map { it.serverInfo.name }) {
                         time += result.getLong(serverName)
                     }
                     timeCompletableFuture.complete(time)
                 }
-        }
+            }
+
 
         timeCompletableFuture.whenComplete { result, _ ->
             database.queueQuery(Query.query("INSERT INTO velocityonlinetime (UUID) VALUES ('$uuid') ON DUPLICATE KEY UPDATE time = $result;"))
@@ -155,11 +157,11 @@ object Database {
         val completableFuture = CompletableFuture<Boolean>()
         val timeCompletableFuture = CompletableFuture<Long>()
 
-        for (serverName in VRuom.getServer().allServers.map { it.serverInfo.name }) {
-            database.queueQuery(Query.query("SELECT * FROM velocityonlinetime_daily WHERE UUID='$uuid'"))
-                .completableFuture.whenComplete { result, _ ->
+        database.queueQuery(Query.query("SELECT * FROM velocityonlinetime_daily WHERE UUID='$uuid'"))
+            .completableFuture.whenComplete { result, _ ->
+                if (result.next()) {
                     var time: Long = 0
-                    while (result.next()) {
+                    for (serverName in VRuom.getServer().allServers.map { it.serverInfo.name }) {
                         time += result.getLong(serverName)
                     }
                     timeCompletableFuture.complete(time)
