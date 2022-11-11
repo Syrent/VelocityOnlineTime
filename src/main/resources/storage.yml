@@ -1,0 +1,8 @@
+mysql:
+  address: localhost
+  port: 3306
+  database: velocityonlinetime
+  username: root
+  password: ""
+  ssl: false
+  pooling_size: 3

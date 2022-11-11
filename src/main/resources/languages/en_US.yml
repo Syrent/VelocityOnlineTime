@@ -1,0 +1,31 @@
+general:
+  raw_prefix: "[VelocityReport]"
+  prefix: "<gradient:dark_red:red>VelocityReport</gradient> <gold>|</gold>"
+  console_prefix: "<gray>[<gradient:dark_red:red>VelocityReport</gradient>]</gray>"
+  successful_prefix: "<dark_gray>[</dark_gray><dark_green><bold>✔</bold><dark_gray>]</dark_gray>"
+  warn_prefix: "<dark_gray>[</dark_gray><gold><bold>!</bold><dark_gray>]</dark_gray>"
+  error_prefix: "<dark_gray>[</dark_gray><dark_red><bold>✘</bold><dark_gray>]</dark_gray>"
+  only_players: "$error_prefix <gradient:dark_red:red>Only players can use this command."
+  unknown_message: "$error_prefix <gradient:dark_red:red>Unknown message!"
+  valid_parameters: "$error_prefix <gradient:dark_red:red>Please use a valid parameter for this command. <dark_gray>($argument)"
+command:
+  no_permission: "$error_prefix <gradient:dark_red:red>You don't have permission to use this command! <dark_gray>($permission)"
+  player_not_found: "$error_prefix <dark_red>Player not found!"
+  player_not_found_server: "$error_prefix <dark_red>Player onlinetime is invalid on <gold>$server</gold>!"
+  valid_parameters: "$error_prefix <gradient:dark_red:red>Please use a valid parameter for this command. <dark_gray>($argument)"
+  onlinetime:
+    usage: "$warn_prefix <gradient:dark_red:red>Usage: <gold>/onlinetime <yellow><args>"
+    use: "$successful_prefix <gradient:dark_green:green>Your total onlinetime is: <gold>$time"
+    server:
+      use: "$successful_prefix <gradient:dark_green:green>Your onlinetime on <gold>$server</gold> is: <gold>$time"
+    week:
+      use: "$successful_prefix <gradient:dark_green:green>Your onlinetime this week is: <gold>$time"
+    get:
+      use: "$successful_prefix <gradient:dark_green:green>$player's total onlinetime is: <gold>$time"
+      usage: "$warn_prefix <gradient:dark_red:red>Usage: <gold>/onlinetime get <yellow><player> [server]"
+      server:
+        use: "$successful_prefix <gradient:dark_green:green>$player's total onlinetime in $server is: <gold>$time"
+    top:
+      use: "<color:#EE9900>[<color:#F9BD03>$position<color:#EE9900>] <color:#C1D6F1>$player</color><color:#00F3FF> | </color> <color:#C0D3EF>$time"
+      week:
+        use: "<color:#EE9900>[<color:#F9BD03>$position<color:#EE9900>] <color:#C1D6F1>$player</color><color:#00F3FF> | </color> <color:#C0D3EF>$time"

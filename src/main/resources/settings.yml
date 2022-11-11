@@ -1,0 +1,5 @@
+default_language: "en_US"
+# Enable this option if you're using plugin on a Velocity network
+velocity_support: false
+bstats: true
+show_dependency_suggestions: true

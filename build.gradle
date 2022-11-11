@@ -18,6 +18,19 @@ repositories {
         url = 'https://repo.papermc.io/repository/maven-public/'
     }
 
+    // SpigotAPI
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+
+        // As of Gradle 5.1, you can limit this to only those
+        // dependencies you expect from it
+        content {
+            includeGroup 'org.bukkit'
+            includeGroup 'org.spigotmc'
+        }
+    }
+
+
     maven {
         name = "sonatype-oss-snapshots1"
         url = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
@@ -38,18 +51,23 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.cryptomorin:XSeries:9.1.0'
-    implementation 'com.moandjiezana.toml:toml4j:0.7.2'
-    implementation 'me.mohamad82:ruom-velocity:4.2.9'
-    implementation 'me.mohamad82:ruom-core:4.1.0'
-    implementation 'commons-io:commons-io:2.6'
-
-    compileOnly 'io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.19-R0.1-SNAPSHOT'
     compileOnly 'com.velocitypowered:velocity-api:3.1.1'
     compileOnly 'me.clip:placeholderapi:2.11.2'
-    compileOnly 'net.dv8tion:JDA:5.0.0-alpha.18'
-    compileOnly 'org.xerial:sqlite-jdbc:3.39.3.0'
-    compileOnly files('libs/DBConnector-Velocity-1.0-all.jar')
+
+    implementation 'com.github.cryptomorin:XSeries:9.1.0'
+    implementation 'me.mohamad82:ruom-velocity:4.3.0'
+    implementation 'org.bstats:bstats-bukkit:3.0.0'
+    implementation 'me.mohamad82:ruom-core:4.2.5'
+    implementation 'commons-io:commons-io:2.6'
+    implementation 'io.papermc:paperlib:1.0.7'
+
+    implementation 'net.kyori:adventure-api:4.11.0'
+    implementation 'net.kyori:adventure-platform-bukkit:4.1.2'
+    implementation 'net.kyori:adventure-text-minimessage:4.11.0'
+
+    implementation 'mysql:mysql-connector-java:8.0.30'
+    implementation 'com.zaxxer:HikariCP:4.0.3'
 
     annotationProcessor 'com.velocitypowered:velocity-api:3.1.1'
 }
@@ -64,9 +82,25 @@ processResources {
 }
 
 shadowJar {
-    minimize()
+    minimize {
+        exclude(dependency('mysql:.*:.*'))
+    }
+
+    manifest {
+        attributes["Main-Class"] = 'ir.syrent.velocityonlinetime.velocity.VelocityOnlineTime'
+    }
+
     relocate('me.mohamad82.ruom', 'ir.syrent.velocityonlinetime.ruom')
+    relocate('com.cryptomorin.xseries', 'ir.syrent.velocityonlinetime.xseries')
     relocate('com.zaxxer.hikari', 'ir.syrent.velocityonlinetime.hikari')
+    relocate('net.kyori.adventure', 'ir.syrent.velocityvanish.kyori.adventure')
+    relocate('org.bstats', 'ir.syrent.velocityvanish.bstats')
+
+    // @see https://youtrack.jetbrains.com/issue/KT-25709
+    exclude '**/*.kotlin_metadata'
+    exclude '**/*.kotlin_module'
+    exclude '**/*.kotlin_builtins'
+
     archiveFileName = findProperty("plugin-name") + " v" + findProperty("version") + ".jar"
 }
 
@@ -74,7 +108,7 @@ jar {
     archiveFileName = findProperty("plugin-name") + " v" + findProperty("version") + " " + "unshaded" + ".jar"
 }
 
-def targetJavaVersion = 17
+def targetJavaVersion = 8
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
@@ -90,6 +124,11 @@ tasks.withType(JavaCompile).configureEach {
         options.release = targetJavaVersion
     }
 }
+
+compileJava.options.encoding = 'UTF-8'
+compileJava.dependsOn clean
+
+build.dependsOn shadowJar
 
 tasks.withType(Jar) {
     destinationDirectory = file("$rootDir/bin/")
@@ -116,6 +155,7 @@ sourceSets.main.java.srcDir(generateTemplates.map { it.outputs })
 
 rootProject.idea.project.settings.taskTriggers.afterSync generateTemplates
 project.eclipse.synchronizationTasks(generateTemplates)
+
 compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"

@@ -6,6 +6,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 object Utils {
     fun String.capitalize(): String {
         return this.uppercase()[0].toString() + this.lowercase().substring(1)
+
     }
 
     fun Long.format(): String {
